@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import './MapComponent.css'; 
+import Sidebar from '../Candle/Sidebar/Sidebar';
 import Candle from '../Candle/Candle';
 
 const defaultCenter = [38.9072, -77.0369];
@@ -48,6 +49,8 @@ const MapComponent = () => {
   };
   
   return (
+    <>
+    <Sidebar />
     <MapContainer
       ref={mapRef}
       center={defaultCenter}
@@ -58,7 +61,7 @@ const MapComponent = () => {
         url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
-
+    
       <MapClickHandler onMapClick={handleMapClick} />
 
       {markers.map(marker => (
@@ -98,6 +101,7 @@ const MapComponent = () => {
         </Marker>
       )}
     </MapContainer>
+    </>
   );
 };
 
