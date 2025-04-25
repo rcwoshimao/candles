@@ -1,7 +1,20 @@
+/* Necessary to allow full height */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.App {
+  height: 100%;
+  width: 100%; 
+}
+
+
 #root {
-  max-width: 1280px;
+  /*max-width: 1280px;*/
   margin: 0 auto;
-  padding: 2rem;
+  /*padding: 2rem;*/
   text-align: center;
 }
 
@@ -40,3 +53,7 @@
 .read-the-docs {
   color: #888;
 }
+
+
+
+
