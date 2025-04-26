@@ -2,3 +2,9 @@
     width: 100vw;
     height: 100vh;
   }
+
+  .MapContainer {
+    z-index: 1; /* Lower z-index */
+  }
+
+  

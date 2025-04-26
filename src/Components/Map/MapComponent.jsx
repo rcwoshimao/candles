@@ -100,8 +100,21 @@ const MapComponent = () => {
         <div>Last Action: {lastAction || 'No action yet'}</div>
       </div>
 
-
-      <div style={{ marginTop: '10px' }}>
+      <div style={{ 
+        position: 'fixed',
+        top: '10px',
+        right: '10px',
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        color: 'white',
+        padding: '10px',
+        borderRadius: '8px',
+        fontSize: '12px',
+        zIndex: 2000,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px', // <-- space between buttons
+        width: '200px' // <-- or whatever width you like
+      }}>
         <button onClick={() => {
           localStorage.removeItem('candleMarkers');
           setMarkers([]);
@@ -142,6 +155,7 @@ const MapComponent = () => {
         center={defaultCenter}
         zoom={defaultZoom}
         style={{ height: '100vh', width: '100vw' }}
+        className="MapContainer"
       >
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"

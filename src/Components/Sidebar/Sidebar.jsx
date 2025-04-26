@@ -1,40 +1,60 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { BarChart3, X } from 'lucide-react'; // you can use any icon set
+import * as React from "react";
+import { useRef } from "react";
+import { motion, useCycle } from "framer-motion";
+import { useDimensions } from "./use-dimensions";
+import { MenuToggle } from "./MenuToggle";
+import { Navigation } from "./Navigation";
+import './Sidebar.css'; 
 
-const Sidebar = () => {
-  const [isOpen, setIsOpen] = useState(false);
+const sidebar = {
+  open: (height = 1000) => ({
+    clipPath: `circle(${height * 2 + 200}px at 40px 40px)`,
+    transition: {
+      type: "spring",
+      stiffness: 20,
+      restDelta: 2
+    }
+  }),
+  closed: {
+    clipPath: "circle(30px at 40px 40px)",
+    transition: {
+      delay: 0.5,
+      type: "spring",
+      stiffness: 400,
+      damping: 40
+    }
+  }
+};
+
+export const Sidebar = () => {
+  const [isOpen, toggleOpen] = useCycle(true, false);
+  const containerRef = useRef(null);
+  const { height } = useDimensions(containerRef);
 
   return (
-    <div className="absolute top-4 right-4 z-[1000]">
-      {!isOpen ? (
-        <button
-          className="p-2 bg-white text-black rounded shadow hover:bg-gray-100"
-          onClick={() => setIsOpen(true)}
-        >
-          <BarChart3 className="w-6 h-6" />
-        </button>
-      ) : (
-        <motion.div
-          initial={{ x: 300 }}
-          animate={{ x: 0 }}
-          exit={{ x: 300 }}
-          className="w-72 bg-white rounded-xl shadow-xl p-4"
-        >
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">Visualizations</h2>
-            <button onClick={() => setIsOpen(false)}>
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-          <div>
-            {/* Replace below with actual charts */}
-            <p className="text-sm text-gray-600">Insert charts here</p>
-          </div>
-        </motion.div>
-      )}
-    </div>
+    <motion.nav
+    className="sidebar-nav"
+    initial={false}
+    animate={isOpen ? "open" : "closed"}
+    custom={height}
+    ref={containerRef}
+  >
+    <motion.div
+      className="sidebar-background"
+      variants={sidebar}
+      animate={isOpen ? "open" : "closed"}
+      initial={false}
+      custom={height}
+    >
+      <Navigation />
+      <MenuToggle toggle={() => toggleOpen()} />
+    </motion.div>
+  </motion.nav>
+  
+
+
   );
 };
 
-export default Sidebar;
+
+export default Sidebar; 
