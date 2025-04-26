@@ -1,7 +1,7 @@
 import React from 'react';
 import { Marker, Popup } from 'react-leaflet';
-
 import { format } from 'date-fns';  // Or use moment.js if preferred
+import './Candle.css';
 
 const Candle = ({ 
   id, 

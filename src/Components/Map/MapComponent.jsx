@@ -100,6 +100,42 @@ const MapComponent = () => {
         <div>Last Action: {lastAction || 'No action yet'}</div>
       </div>
 
+
+      <div style={{ marginTop: '10px' }}>
+        <button onClick={() => {
+          localStorage.removeItem('candleMarkers');
+          setMarkers([]);
+          setLastAction('All markers deleted');
+        }}>
+          Clear All Markers
+        </button>
+
+        <button onClick={() => {
+          const randomOffset = () => (Math.random()) * 0.9; // small offset up to ±0.1 degrees
+
+          const sampleMarker = {
+            id: crypto.randomUUID(),
+            position: [
+              38.9072 + randomOffset(), // random latitude near DC
+              -77.0369 + randomOffset() // random longitude near DC
+            ],
+            emotion: ['joy', 'sadness', 'love', 'anger', 'lonely'][Math.floor(Math.random() * 5)], // random emotion
+            timestamp: new Date().toISOString(),
+            userTimestamp: new Date(),
+            userID: currentUserID,
+          };
+
+          const updated = [...markers, sampleMarker];
+          localStorage.setItem('candleMarkers', JSON.stringify(updated));
+          setMarkers(updated);
+          setLastAction('Random sample marker added');
+        }}>
+          Add Random Sample Marker
+        </button>
+
+      </div>
+
+
       <Sidebar />
       <MapContainer
         ref={mapRef}
