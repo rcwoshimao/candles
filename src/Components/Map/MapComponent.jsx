@@ -28,24 +28,37 @@ const MapComponent = () => {
   const mapRef = useRef();
   const [markers, setMarkers] = useState(() => {
     const stored = localStorage.getItem('candleMarkers');
-    // Ensure valid markers array
-    return stored ? JSON.parse(stored).filter(marker => marker !== null) : [];
+    if (stored) {
+      return JSON.parse(stored)
+        .filter(marker => marker !== null)
+        .map(marker => ({
+          ...marker,
+          userTimestamp: marker.userTimestamp ? marker.userTimestamp : marker.timestamp // fallback if missing
+        }));
+    }
+    return [];
   });
+  
 
   const [tempMarker, setTempMarker] = useState(null);
-  const [lastAction, setLastAction] = useState(''); //For debugging 
+  const [lastAction, setLastAction] = useState('');
 
   const handleMapClick = (latlng) => {
+    const creatorTimestamp = new Date().toISOString(); // UTC timestamp
+    const userTimestamp = new Date(); // Local user timestamp as a Date object
+  
     setTempMarker({
       id: crypto.randomUUID(),
       position: [latlng.lat, latlng.lng],
       emotion: '',
-      note: '',
-      timestamp: new Date().toISOString(),
+      timestamp: creatorTimestamp,  // UTC timestamp
+      userTimestamp: userTimestamp, // Local timestamp as Date object
       userID: currentUserID,
     });
-    setLastAction(`Marker placed at ${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`); 
+  
+    setLastAction(`Marker placed at ${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`);
   };
+  
 
   const handleSave = () => {
     if (!tempMarker?.emotion) {
@@ -84,7 +97,7 @@ const MapComponent = () => {
         <div><strong>Debug Panel</strong></div>
         <div>User ID: {currentUserID}</div>
         <div>Markers: {markers.length}</div>
-        <div>Last Action: {lastAction || 'No action yet'}</div>  {/* Display last action */}
+        <div>Last Action: {lastAction || 'No action yet'}</div>
       </div>
 
       <Sidebar />
@@ -110,10 +123,12 @@ const MapComponent = () => {
               position={marker.position}
               emotion={marker.emotion}
               timestamp={marker.timestamp}
+              userTimestamp={marker.userTimestamp} // Pass user time to Candle
               handleDelete={handleDelete}
             />
           )
         ))}
+
         {tempMarker && (
           <Candle
             key={tempMarker.id}
@@ -121,9 +136,10 @@ const MapComponent = () => {
             position={tempMarker.position}
             emotion={tempMarker.emotion}
             timestamp={tempMarker.timestamp}
-            isTemp={true} // 👈 pass an extra prop so Candle knows it's not "saved" yet
-            setTempMarker={setTempMarker} // 👈 allow cancel/save inside Candle
-            handleSave={handleSave} // 👈 submit function renamed for clarity
+            userTimestamp={tempMarker.userTimestamp} // Pass user time to Candle
+            isTemp={true}
+            setTempMarker={setTempMarker}
+            handleSave={handleSave}
           />
         )}
       </MapContainer>

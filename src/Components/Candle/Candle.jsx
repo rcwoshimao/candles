@@ -1,8 +1,22 @@
 import React from 'react';
 import { Marker, Popup } from 'react-leaflet';
 
+import { format } from 'date-fns';  // Or use moment.js if preferred
 
-const Candle = ({ id, position, emotion, timestamp, handleDelete, isTemp, setTempMarker, handleSave }) => {
+const Candle = ({ 
+  id, 
+  position, 
+  emotion, 
+  handleDelete, 
+  isTemp, 
+  setTempMarker, 
+  handleSave, 
+  userTimestamp,   
+  timestamp // <-- here (instead of creatorTime)
+}) => {
+  const formattedUserTime = format(new Date(userTimestamp), 'yyyy-MM-dd HH:mm:ss'); 
+  const formattedCreatorTime = format(new Date(timestamp), 'yyyy-MM-dd HH:mm:ss');
+
   return (
     <Marker position={position}>
       <Popup>
@@ -31,7 +45,8 @@ const Candle = ({ id, position, emotion, timestamp, handleDelete, isTemp, setTem
         ) : (
           <div>
             <p><strong>Emotion:</strong> {emotion}</p>
-            <p><small>{new Date(timestamp).toLocaleString()}</small></p>
+            <p><small><strong>Viewed at (Your Local Time):</strong> {formattedUserTime}</small></p>
+            <p><small><strong>Placed at (Creator's Time):</strong> {formattedCreatorTime}</small></p>
             <button onClick={() => handleDelete(id)}>Delete</button>
           </div>
         )}
@@ -40,5 +55,5 @@ const Candle = ({ id, position, emotion, timestamp, handleDelete, isTemp, setTem
   );
 };
 
-export default Candle;
 
+export default Candle;
