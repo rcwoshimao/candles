@@ -4,7 +4,6 @@ import { BarChart3, X } from 'lucide-react'; // you can use any icon set
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  
 
   return (
     <div className="absolute top-4 right-4 z-[1000]">
