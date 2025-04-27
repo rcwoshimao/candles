@@ -4,49 +4,53 @@
   right: 0;
   bottom: 0;
   width: 300px;
-  /* REMOVE background: white; */
-  /* REMOVE box-shadow */
   z-index: 1000;
 }
 
 .sidebar-background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0; 
-  bottom: 0;
-  width: 300px;
-  overflow: hidden;
-  background: white; /* moved here! */
-  box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.5); /* moved here! */
-}
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 300px;
+    
+    /* The magic starts here: */
+    /*background: rgba(0, 0, 0, 0.2); White but semi-transparent */
+    background: rgba(0, 0, 0, 0.2) 
+            url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zY2h...');
 
+    backdrop-filter: blur(10px); /* Adds the frosted glass effect */
+    -webkit-backdrop-filter: blur(10px); /* Safari support */
+    
+    overflow: hidden;
+    border-left: 1px solid rgba(255, 255, 255, 0.3); /* Optional light border */
+  }
   
-.sidebar-button {
+  
+  .sidebar-button {
     outline: none;
     border: none;
     cursor: pointer;
     position: absolute;
     top: 18px;
-    right: 15px; /* <-- move to the right if your sidebar is on the right */
+    right: 15px; /* Align to the right of the sidebar */
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background: white; /* <-- remove transparent background */
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 0;
-    z-index: 1001; /* on top of everything */
+    z-index: 1001; /* Ensure button is on top */
     box-shadow: none;
-    -webkit-tap-highlight-color: transparent; /* For mobile tap feedback */
+    background: transparent; /* Remove the background for button */
   }
+  
   
   .sidebar-button:focus,
   .sidebar-button:active {
     outline: none;
     box-shadow: none;
-    background: white; /* Keep background same even when clicked */
   }
 
   .sidebar-ul,

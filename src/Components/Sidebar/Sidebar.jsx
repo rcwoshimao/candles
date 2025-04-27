@@ -8,7 +8,8 @@ import './Sidebar.css';
 
 const sidebar = {
   open: (height = 1000) => ({
-    clipPath: `circle(${height * 2 + 200}px at calc(100% - 40px) 40px)`,
+    clipPath: `circle(${height * 2 + 200}px at calc(100% - 40px) 40px)`, // Top-right corner
+    
     transition: {
       type: "spring",
       stiffness: 20,
@@ -16,7 +17,8 @@ const sidebar = {
     }
   }),
   closed: {
-    clipPath: "circle(30px at calc(100% - 40px) 40px)",
+    clipPath: "circle(30px at calc(100% - 40px) 40px)", // Keep top-right alignment
+    
     transition: {
       type: "spring",
       stiffness: 400,
@@ -24,6 +26,7 @@ const sidebar = {
     }
   }
 };
+
 
 
 export const Sidebar = () => {
