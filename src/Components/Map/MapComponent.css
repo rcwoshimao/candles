@@ -7,4 +7,29 @@
     z-index: 1; /* Lower z-index */
   }
 
+
+
+  /* Style the zoom-in button */
+.leaflet-control-zoom-in {
+  color: white !important; 
+  background-color: black !important ; /* Change to your preferred color */
+  border: 1px solid white !important;
+  border-bottom: none !important; 
   
+}
+
+/* Style the zoom-out button */
+.leaflet-control-zoom-out {
+  color: white !important; 
+  background-color:  black !important; /* Change to your preferred color */
+  border: 1px solid white !important;
+  border-top: none !important; 
+}
+
+/* Hover effect for the zoom buttons */
+.leaflet-control-zoom-in:hover,
+.leaflet-control-zoom-out:hover {
+  color: white; 
+  background-color: grey !important; 
+  cursor: pointer; /* Change cursor to indicate interactiveness */
+}

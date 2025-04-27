@@ -83,39 +83,14 @@ const MapComponent = () => {
 
   return (
     <>
-      <div style={{
-        position: 'fixed',
-        bottom: '10px',
-        left: '10px',
-        backgroundColor: 'rgba(0,0,0,0.7)',
-        color: 'white',
-        padding: '10px',
-        borderRadius: '8px',
-        fontSize: '12px',
-        zIndex: 1000
-      }}>
+      <div className="debug-panel">
         <div><strong>Debug Panel</strong></div>
         <div>User ID: {currentUserID}</div>
         <div>Markers: {markers.length}</div>
         <div>Last Action: {lastAction || 'No action yet'}</div>
       </div>
 
-      <div style={{ 
-        position: 'fixed',
-        top: '20px',
-        left: '50%',            // <--- add this
-        transform: 'translateX(-50%)',  // <--- and this
-        backgroundColor: 'rgba(0,0,0,0.7)',
-        color: 'white',
-        padding: '10px',
-        borderRadius: '8px',
-        fontSize: '12px',
-        zIndex: 2000,
-        display: 'flex',
-        flexDirection: 'row',
-        gap: '10px', // <-- space between buttons
-
-      }}>
+      <div className="marker-actions-panel">
         <button onClick={() => {
           localStorage.removeItem('candleMarkers');
           setMarkers([]);
@@ -146,9 +121,7 @@ const MapComponent = () => {
         }}>
           Add Random Sample Marker
         </button>
-
       </div>
-
 
       <Sidebar />
       <MapContainer
@@ -159,13 +132,13 @@ const MapComponent = () => {
         className="MapContainer"
       >
         <TileLayer
+          className='tile-layer'
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
 
         <MapClickHandler onMapClick={handleMapClick} />
 
-        {/* Existing markers */}
         {markers.map(marker => (
           marker && (
             <Candle
