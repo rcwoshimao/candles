@@ -102,8 +102,9 @@ const MapComponent = () => {
 
       <div style={{ 
         position: 'fixed',
-        top: '10px',
-        right: '10px',
+        top: '20px',
+        left: '50%',            // <--- add this
+        transform: 'translateX(-50%)',  // <--- and this
         backgroundColor: 'rgba(0,0,0,0.7)',
         color: 'white',
         padding: '10px',
@@ -111,9 +112,9 @@ const MapComponent = () => {
         fontSize: '12px',
         zIndex: 2000,
         display: 'flex',
-        flexDirection: 'column',
+        flexDirection: 'row',
         gap: '10px', // <-- space between buttons
-        width: '200px' // <-- or whatever width you like
+
       }}>
         <button onClick={() => {
           localStorage.removeItem('candleMarkers');

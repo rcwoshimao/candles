@@ -1,7 +1,7 @@
 .sidebar-nav {
   position: fixed;
   top: 0;
-  left: 0;
+  right: 0;
   bottom: 0;
   width: 300px;
   /* REMOVE background: white; */
@@ -13,6 +13,7 @@
   position: absolute;
   top: 0;
   left: 0;
+  right: 0; 
   bottom: 0;
   width: 300px;
   overflow: hidden;
@@ -21,22 +22,33 @@
 }
 
   
-  .sidebar-button {
+.sidebar-button {
     outline: none;
     border: none;
     cursor: pointer;
     position: absolute;
     top: 18px;
-    left: 15px;
+    right: 15px; /* <-- move to the right if your sidebar is on the right */
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background: transparent;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
+    background: white; /* <-- remove transparent background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    z-index: 1001; /* on top of everything */
+    box-shadow: none;
+    -webkit-tap-highlight-color: transparent; /* For mobile tap feedback */
   }
   
+  .sidebar-button:focus,
+  .sidebar-button:active {
+    outline: none;
+    box-shadow: none;
+    background: white; /* Keep background same even when clicked */
+  }
+
   .sidebar-ul,
   .sidebar-li {
     margin: 0;

@@ -8,7 +8,7 @@ import './Sidebar.css';
 
 const sidebar = {
   open: (height = 1000) => ({
-    clipPath: `circle(${height * 2 + 200}px at 40px 40px)`,
+    clipPath: `circle(${height * 2 + 200}px at calc(100% - 40px) 40px)`,
     transition: {
       type: "spring",
       stiffness: 20,
@@ -16,9 +16,8 @@ const sidebar = {
     }
   }),
   closed: {
-    clipPath: "circle(30px at 40px 40px)",
+    clipPath: "circle(30px at calc(100% - 40px) 40px)",
     transition: {
-      delay: 0.5,
       type: "spring",
       stiffness: 400,
       damping: 40
@@ -26,35 +25,32 @@ const sidebar = {
   }
 };
 
+
 export const Sidebar = () => {
-  const [isOpen, toggleOpen] = useCycle(true, false);
+  const [isOpen, toggleOpen] = useCycle(false, true);  // <-- START closed!!
   const containerRef = useRef(null);
   const { height } = useDimensions(containerRef);
 
   return (
     <motion.nav
-    className="sidebar-nav"
-    initial={false}
-    animate={isOpen ? "open" : "closed"}
-    custom={height}
-    ref={containerRef}
-  >
-    <motion.div
-      className="sidebar-background"
-      variants={sidebar}
+      className="sidebar-nav"
+      initial={false} // Don't animate immediately
       animate={isOpen ? "open" : "closed"}
-      initial={false}
       custom={height}
+      ref={containerRef}
     >
-      <Navigation />
+      <motion.div
+        className="sidebar-background"
+        variants={sidebar}
+        initial={false}
+        animate={isOpen ? "open" : "closed"}
+        custom={height}
+      >
+        <Navigation isOpen={isOpen} />
+      </motion.div>
       <MenuToggle toggle={() => toggleOpen()} />
-    </motion.div>
-  </motion.nav>
-  
-
-
+    </motion.nav>
   );
 };
 
-
-export default Sidebar; 
+export default Sidebar;
