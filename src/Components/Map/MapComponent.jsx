@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect} from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import './MapComponent.css'; 
@@ -59,7 +59,6 @@ const MapComponent = () => {
     setLastAction(`Marker placed at ${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`);
   };
   
-
   const handleSave = () => {
     if (!tempMarker?.emotion) {
       alert("Please select an emotion.");
@@ -81,6 +80,24 @@ const MapComponent = () => {
     setLastAction(`Marker with ID ${idToDelete} deleted`);
   };
 
+  useEffect(() => {
+    const map = mapRef.current ? mapRef.current.leafletElement : null; // Access Leaflet's map instance
+
+    if (map) {
+      const handleZoom = () => {
+        const zoom = map.getZoom();
+        if (zoom < 2) map.setZoom(2);  // Prevent zoom out beyond level 2
+        if (zoom > 18) map.setZoom(18); // Prevent zoom in beyond level 18
+      };
+
+      map.on('zoomend', handleZoom);
+
+      return () => {
+        if (map) map.off('zoomend', handleZoom);
+      };
+    }
+  }, []);
+  
   return (
     <>
       <div className="debug-panel">
@@ -100,8 +117,7 @@ const MapComponent = () => {
         </button>
 
         <button onClick={() => {
-          const randomOffset = () => (Math.random()) * 0.9; // small offset up to ±0.1 degrees
-
+          const randomOffset = (scale = 5) => (Math.random() - 0.5) * scale;
           const sampleMarker = {
             id: crypto.randomUUID(),
             position: [
@@ -126,10 +142,13 @@ const MapComponent = () => {
       <Sidebar />
       <MapContainer
         ref={mapRef}
-        center={defaultCenter}
-        zoom={defaultZoom}
+        center={[0, 0]}
+        zoom={2}
+        minZoom={2}
+        maxZoom={18}
+        maxBounds={[[-85, -180], [85, 180]]}
+        maxBoundsViscosity={1.0}
         style={{ height: '100vh', width: '100vw' }}
-        className="MapContainer"
       >
         <TileLayer
           className='tile-layer'

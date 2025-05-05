@@ -1,24 +1,40 @@
 import React from 'react';
-import { Marker, Popup } from 'react-leaflet';
-import { format } from 'date-fns';  // Or use moment.js if preferred
+import { Marker, Popup, useMap } from 'react-leaflet';
+import { format } from 'date-fns';
+import L from 'leaflet';
 import './Candle.css';
 
-const Candle = ({ 
-  id, 
-  position, 
-  emotion, 
-  handleDelete, 
-  isTemp, 
-  setTempMarker, 
-  handleSave, 
-  userTimestamp,   
-  timestamp // <-- here (instead of creatorTime)
+const Candle = ({
+  id,
+  position,
+  emotion,
+  handleDelete,
+  isTemp,
+  setTempMarker,
+  handleSave,
+  userTimestamp,
+  timestamp,
 }) => {
-  const formattedUserTime = format(new Date(userTimestamp), 'yyyy-MM-dd HH:mm:ss'); 
+  const map = useMap();
+  const zoom = map.getZoom();
+
+  // Scale marker size based on zoom level (but not 1:1)
+  //const size = Math.max(10, 30 - (18 - zoom) * 2); // example logic
+  const size = Math.max(6, Math.min(40, 1 + Math.pow(zoom - 8, 1.7)));
+
+  const candleIcon = L.divIcon({
+    className: '',
+    html: `<div class="glow-dot" style="width:${size}px;height:${size}px;"></div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -size / 2],
+  });
+
+  const formattedUserTime = format(new Date(userTimestamp), 'yyyy-MM-dd HH:mm:ss');
   const formattedCreatorTime = format(new Date(timestamp), 'yyyy-MM-dd HH:mm:ss');
 
   return (
-    <Marker position={position}>
+    <Marker position={position} icon={candleIcon}>
       <Popup>
         {isTemp ? (
           <div>
@@ -26,7 +42,7 @@ const Candle = ({
               Emotion:
               <select
                 value={emotion}
-                onChange={(e) => setTempMarker(prev => ({ ...prev, emotion: e.target.value }))}
+                onChange={(e) => setTempMarker((prev) => ({ ...prev, emotion: e.target.value }))}
               >
                 <option value="">Select</option>
                 <option value="joy">Joy</option>
@@ -54,6 +70,5 @@ const Candle = ({
     </Marker>
   );
 };
-
 
 export default Candle;
