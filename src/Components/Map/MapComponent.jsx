@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect} from 'react';
+import React, { useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import './MapComponent.css'; 
@@ -33,7 +33,7 @@ const MapComponent = () => {
         .filter(marker => marker !== null)
         .map(marker => ({
           ...marker,
-          userTimestamp: marker.userTimestamp ? marker.userTimestamp : marker.timestamp // fallback if missing
+          userTimestamp: new Date(marker.userTimestamp),
         }));
     }
     return [];
@@ -64,14 +64,20 @@ const MapComponent = () => {
       alert("Please select an emotion.");
       return;
     }
-
-    const updatedMarkers = [...markers, tempMarker];
+  
+    const markerToSave = {
+      ...tempMarker,
+      userTimestamp: tempMarker.userTimestamp.toISOString(), // Convert to string
+    };
+  
+    const updatedMarkers = [...markers, markerToSave];
     setMarkers(updatedMarkers);
-
+  
     localStorage.setItem('candleMarkers', JSON.stringify(updatedMarkers));
     setTempMarker(null);
     setLastAction(`Marker saved at ${tempMarker.position[0].toFixed(4)}, ${tempMarker.position[1].toFixed(4)}`);
   };
+  
 
   const handleDelete = (idToDelete) => {
     const updatedMarkers = markers.filter(marker => marker.id !== idToDelete);
@@ -80,23 +86,10 @@ const MapComponent = () => {
     setLastAction(`Marker with ID ${idToDelete} deleted`);
   };
 
-  useEffect(() => {
-    const map = mapRef.current ? mapRef.current.leafletElement : null; // Access Leaflet's map instance
-
-    if (map) {
-      const handleZoom = () => {
-        const zoom = map.getZoom();
-        if (zoom < 2) map.setZoom(2);  // Prevent zoom out beyond level 2
-        if (zoom > 18) map.setZoom(18); // Prevent zoom in beyond level 18
-      };
-
-      map.on('zoomend', handleZoom);
-
-      return () => {
-        if (map) map.off('zoomend', handleZoom);
-      };
-    }
-  }, []);
+  const worldBounds = [
+    [-85, -180], // Southwest
+    [85, 180]    // Northeast
+  ];
   
   return (
     <>
@@ -139,16 +132,19 @@ const MapComponent = () => {
         </button>
       </div>
 
+
+
       <Sidebar />
       <MapContainer
         ref={mapRef}
-        center={[0, 0]}
-        zoom={2}
-        minZoom={2}
+        center={defaultCenter}
+        zoom={defaultZoom}
+        minZoom={0}
         maxZoom={18}
-        maxBounds={[[-85, -180], [85, 180]]}
-        maxBoundsViscosity={1.0}
+        maxBounds={worldBounds}
+        maxBoundsViscosity={1.0} // 1.0 means hard limit; lower values feel like resistance
         style={{ height: '100vh', width: '100vw' }}
+        className="MapContainer"
       >
         <TileLayer
           className='tile-layer'

@@ -19,8 +19,17 @@ const Candle = ({
   const zoom = map.getZoom();
 
   // Scale marker size based on zoom level (but not 1:1)
-  //const size = Math.max(10, 30 - (18 - zoom) * 2); // example logic
-  const size = Math.max(6, Math.min(40, 1 + Math.pow(zoom - 8, 1.7)));
+  //const safeZoom = !isNaN(zoom) ? zoom : 8;  // Fallback to 8 if zoom is invalid
+  const baseSize = 10;  // Base size at zoom 0
+  const scaleFactor = 1.2; // Determines how quickly the size increases with zoom
+
+  // Logarithmic scale for smoother scaling
+  const size = Math.max(10, Math.min(1, baseSize * Math.pow(scaleFactor, zoom)));
+
+
+
+  console.log("zoom", zoom, "size", size); // Now should never show NaN
+
 
   const candleIcon = L.divIcon({
     className: '',
@@ -30,9 +39,21 @@ const Candle = ({
     popupAnchor: [0, -size / 2],
   });
 
-  const formattedUserTime = format(new Date(userTimestamp), 'yyyy-MM-dd HH:mm:ss');
-  const formattedCreatorTime = format(new Date(timestamp), 'yyyy-MM-dd HH:mm:ss');
-
+  let formattedUserTime = 'Invalid date';
+  let formattedCreatorTime = 'Invalid date';
+  
+  try {
+    formattedUserTime = format(new Date(userTimestamp), 'yyyy-MM-dd HH:mm:ss');
+  } catch (e) {
+    console.warn('Invalid userTimestamp:', userTimestamp);
+  }
+  
+  try {
+    formattedCreatorTime = format(new Date(timestamp), 'yyyy-MM-dd HH:mm:ss');
+  } catch (e) {
+    console.warn('Invalid creatorTimestamp:', timestamp);
+  }
+  
   return (
     <Marker position={position} icon={candleIcon}>
       <Popup>
