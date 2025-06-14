@@ -22,7 +22,6 @@ const variants = {
 const colors = ["#FF008C", "#D309E1", "#9C1AFF", "#7700FF", "#4400FF"];
 
 export const MenuItem = ({ i }) => {
-  const style = { border: `2px solid ${colors[i]}` };
   return (
     <motion.li
       className="sidebar-li"
@@ -30,8 +29,8 @@ export const MenuItem = ({ i }) => {
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.95 }}
     >
-      <div className="sidebar-icon-placeholder" style={style} />
-      <div className="sidebar-text-placeholder" style={style} />
+      <div className="sidebar-icon-placeholder" data-color-index={i} />
+      <div className="sidebar-text-placeholder" data-color-index={i} />
     </motion.li>
   );
 };

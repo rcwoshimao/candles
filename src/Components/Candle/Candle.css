@@ -48,9 +48,20 @@
 .glow-dot {
   border-radius: 50%;
   background: var(--baby-powder);
-  /* Remove the default glow, it will be set by emotion */
-  animation: flicker 2s ease-in-out infinite alternate;
+  /* Base size that will be overridden by the dynamic class */
+  width: 10px;
+  height: 10px;
 }
+
+/* Random flicker assignments */
+.glow-dot[data-flicker="1"] { animation: flicker1 1.5s ease-in-out infinite; }
+.glow-dot[data-flicker="2"] { animation: flicker2 1.8s ease-in-out infinite; }
+.glow-dot[data-flicker="3"] { animation: flicker3 2.1s ease-in-out infinite; }
+
+/* Dynamic size classes for different zoom levels */
+.glow-dot[data-size="small"] { width: 10px; height: 10px; }
+.glow-dot[data-size="medium"] { width: 15px; height: 15px; }
+.glow-dot[data-size="large"] { width: 20px; height: 20px; }
 
 /* Emotion-specific styles for glow-dot */
 .glow-dot[data-emotion="happy"] {
@@ -95,14 +106,86 @@
   filter: brightness(1.2);
 }
 
-/* FLICKER EFFECT */
-@keyframes flicker {
+/* Multiple flicker animations with different timings */
+@keyframes flicker1 {
   0% {
-    opacity: 0.9;
-    transform: scale(1);
+    opacity: 0.7;
+    transform: scale(0.9);
+    filter: brightness(0.8);
   }
-  100% {
+  50% {
     opacity: 1;
     transform: scale(1.1);
+    filter: brightness(1.2);
   }
+  100% {
+    opacity: 0.8;
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes flicker2 {
+  0% {
+    opacity: 0.8;
+    transform: scale(0.95);
+    filter: brightness(0.9);
+  }
+  33% {
+    opacity: 0.9;
+    transform: scale(1.05);
+    filter: brightness(1.1);
+  }
+  66% {
+    opacity: 1;
+    transform: scale(1.1);
+    filter: brightness(1.2);
+  }
+  100% {
+    opacity: 0.85;
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes flicker3 {
+  0% {
+    opacity: 0.75;
+    transform: scale(0.92);
+    filter: brightness(0.85);
+  }
+  25% {
+    opacity: 0.9;
+    transform: scale(1.08);
+    filter: brightness(1.15);
+  }
+  75% {
+    opacity: 0.95;
+    transform: scale(1.05);
+    filter: brightness(1.1);
+  }
+  100% {
+    opacity: 0.8;
+    transform: scale(0.98);
+    filter: brightness(0.95);
+  }
+}
+
+/* Button styles */
+.cancel-button {
+  margin-left: 8px;
+}
+
+.delete-button {
+  background-color: #938884;
+  color: rgb(0, 0, 0);
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.delete-button:hover {
+  color: white; 
+  background-color: #232121;
 }

@@ -27,14 +27,21 @@ const Candle = ({
   // Logarithmic scale for smoother scaling
   const size = Math.max(10, Math.min(1, baseSize * Math.pow(scaleFactor, zoom)));
 
-
+  // Scale marker size based on zoom level
+  const getSizeClass = (size) => {
+    if (size <= 10) return "small";
+    if (size <= 15) return "medium";
+    return "large";
+  };
 
   console.log("zoom", zoom, "size", size); // Now should never show NaN
 
+  // Get random flicker animation (1-3)
+  const getRandomFlicker = () => Math.floor(Math.random() * 3) + 1;
 
   const candleIcon = L.divIcon({
     className: '',
-    html: `<div class="glow-dot" data-emotion="${emotion}" style="width:${size}px;height:${size}px;"></div>`,
+    html: `<div class="glow-dot" data-emotion="${emotion}" data-size="${getSizeClass(size)}" data-flicker="${getRandomFlicker()}"></div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
     popupAnchor: [0, -size / 2],
@@ -78,7 +85,7 @@ const Candle = ({
             </label>
             <br />
             <button onClick={handleSave}>Save Candle</button>
-            <button onClick={() => setTempMarker(null)} style={{ marginLeft: '8px' }}>
+            <button onClick={() => setTempMarker(null)} className="cancel-button">
               Cancel
             </button>
           </div>
@@ -90,14 +97,7 @@ const Candle = ({
             {isUserCandle && (
               <button 
                 onClick={() => handleDelete(id)}
-                style={{ 
-                  backgroundColor: '#ff4444',
-                  color: 'white',
-                  border: 'none',
-                  padding: '5px 10px',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
+                className="delete-button"
               >
                 Delete My Candle
               </button>

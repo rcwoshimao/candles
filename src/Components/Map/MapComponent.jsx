@@ -236,9 +236,8 @@ const MapComponent = () => {
         minZoom={0}
         maxZoom={18}
         maxBounds={worldBounds}
-        maxBoundsViscosity={1.0} // 1.0 means hard limit; lower values feel like resistance
-        style={{ height: '100vh', width: '100vw' }}
-        className="MapContainer"
+        maxBoundsViscosity={1.0}
+        className="MapContainer map-container"
       >
         <TileLayer
           className='tile-layer'

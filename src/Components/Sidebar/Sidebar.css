@@ -184,4 +184,17 @@
 .tile-layer {
   z-index: 1;
 }
+
+/* Menu item colors */
+.sidebar-icon-placeholder[data-color-index="0"] { border: 2px solid #FF008C; }
+.sidebar-icon-placeholder[data-color-index="1"] { border: 2px solid #D309E1; }
+.sidebar-icon-placeholder[data-color-index="2"] { border: 2px solid #9C1AFF; }
+.sidebar-icon-placeholder[data-color-index="3"] { border: 2px solid #7700FF; }
+.sidebar-icon-placeholder[data-color-index="4"] { border: 2px solid #4400FF; }
+
+.sidebar-text-placeholder[data-color-index="0"] { border: 2px solid #FF008C; }
+.sidebar-text-placeholder[data-color-index="1"] { border: 2px solid #D309E1; }
+.sidebar-text-placeholder[data-color-index="2"] { border: 2px solid #9C1AFF; }
+.sidebar-text-placeholder[data-color-index="3"] { border: 2px solid #7700FF; }
+.sidebar-text-placeholder[data-color-index="4"] { border: 2px solid #4400FF; }
   

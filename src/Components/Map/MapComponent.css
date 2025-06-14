@@ -31,3 +31,8 @@
   background-color: grey !important; 
   cursor: pointer; /* Change cursor to indicate interactiveness */
 }
+
+.map-container {
+  height: 100vh;
+  width: 100vw;
+}
