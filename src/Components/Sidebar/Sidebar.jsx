@@ -25,20 +25,46 @@ const sidebar = {
   }
 };
 
+// Add variants for the resize handle
+const resizeHandleVariants = {
+  open: {
+    opacity: 1,
+    transition: {
+      delay: 0.3, // Wait for the circular animation to be mostly complete
+      duration: 0.2
+    }
+  },
+  closed: {
+    opacity: 0,
+    transition: {
+      duration: 0.1 // Quick fade out when closing starts
+    }
+  }
+};
+
 export const Sidebar = () => {
   const [isOpen, toggleOpen] = useCycle(false, true);
+  const [isFullyOpen, setIsFullyOpen] = useState(false);
   const containerRef = useRef(null);
   const { height } = useDimensions(containerRef);
-  const [sidebarWidth, setSidebarWidth] = useState(300); // Default width
+  const [sidebarWidth, setSidebarWidth] = useState(300);
   const [isResizing, setIsResizing] = useState(false);
   const startXRef = useRef(0);
   const startWidthRef = useRef(0);
+
+  // Handle the animation completion
+  const handleAnimationComplete = () => {
+    if (isOpen) {
+      setIsFullyOpen(true);
+    } else {
+      setIsFullyOpen(false);
+    }
+  };
 
   const handleMouseDown = (e) => {
     setIsResizing(true);
     startXRef.current = e.clientX;
     startWidthRef.current = sidebarWidth;
-    // Prevent text selection while dragging
     e.preventDefault();
   };
 
@@ -47,7 +73,7 @@ export const Sidebar = () => {
       if (!isResizing) return;
 
       const deltaX = startXRef.current - e.clientX;
-      const newWidth = Math.min(Math.max(startWidthRef.current + deltaX, 200), 600); // Min 200px, max 600px
+      const newWidth = Math.min(Math.max(startWidthRef.current + deltaX, 200), 600);
       setSidebarWidth(newWidth);
     };
 
@@ -67,32 +93,35 @@ export const Sidebar = () => {
   }, [isResizing]);
 
   return (
-    <motion.nav
-      className="sidebar-nav"
-      initial={false}
-      animate={isOpen ? "open" : "closed"}
-      custom={height}
-      ref={containerRef}
-      style={{ width: isOpen ? sidebarWidth : 0 }}
-    >
-      <motion.div
-        className="sidebar-background"
-        variants={sidebar}
+    <>
+      <motion.nav
+        className="sidebar-nav"
         initial={false}
         animate={isOpen ? "open" : "closed"}
         custom={height}
+        ref={containerRef}
+        onAnimationComplete={handleAnimationComplete}
         style={{ width: sidebarWidth }}
       >
-        <Navigation isOpen={isOpen} />
-      </motion.div>
-      {isOpen && (
-        <div 
+        <motion.div
+          className="sidebar-background"
+          variants={sidebar}
+          initial={false}
+          animate={isOpen ? "open" : "closed"}
+          custom={height}
+        >
+          <Navigation isOpen={isOpen} />
+        </motion.div>
+        <motion.div 
           className="sidebar-resize-handle"
+          variants={resizeHandleVariants}
+          initial="closed"
+          animate={isOpen ? "open" : "closed"}
           onMouseDown={handleMouseDown}
         />
-      )}
-      <MenuToggle toggle={() => toggleOpen()} />
-    </motion.nav>
+        <MenuToggle toggle={() => toggleOpen()} />
+      </motion.nav>
+    </>
   );
 };
 
