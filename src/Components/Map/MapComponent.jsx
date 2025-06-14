@@ -170,7 +170,7 @@ const MapComponent = () => {
                 38.9072 + randomOffset(), // random latitude near DC
                 -77.0369 + randomOffset() // random longitude near DC
               ],
-              emotion: ['joy', 'sadness', 'love', 'anger', 'lonely'][Math.floor(Math.random() * 5)], // random emotion
+              emotion: ['happy', 'sad', 'disgusted', 'angry', 'surprised', 'tired', 'fearful'][Math.floor(Math.random() * 7)], // random emotion from new set
               timestamp: new Date().toISOString(),
               user_timestamp: new Date().toISOString(),
               user_id: currentUserID,

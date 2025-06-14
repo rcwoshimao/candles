@@ -1,41 +1,108 @@
+@import '../../variables.css';
+
 .candle-marker {
   position: absolute;
   border-radius: 50%;
   width: 12px;
   height: 12px;
-  background-color: #f8b400; /* Warm yellow glow */
-  box-shadow: 0 0 7px rgba(248, 180, 0, 0.8); /* Glowing effect */
   pointer-events: none;
-  transition: all 0.3s ease; /* Smooth transition for merging */
+  transition: all 0.3s ease;
+}
+
+/* Emotion-specific styles */
+.candle-marker[data-emotion="happy"] {
+  background-color: var(--emotion-happy);
+  box-shadow: var(--glow-happy);
+}
+
+.candle-marker[data-emotion="sad"] {
+  background-color: var(--emotion-sad);
+  box-shadow: var(--glow-sad);
+}
+
+.candle-marker[data-emotion="disgusted"] {
+  background-color: var(--emotion-disgusted);
+  box-shadow: var(--glow-disgusted);
+}
+
+.candle-marker[data-emotion="angry"] {
+  background-color: var(--emotion-angry);
+  box-shadow: var(--glow-angry);
+}
+
+.candle-marker[data-emotion="surprised"] {
+  background-color: var(--emotion-surprised);
+  box-shadow: var(--glow-surprised);
+}
+
+.candle-marker[data-emotion="tired"] {
+  background-color: var(--emotion-tired);
+  box-shadow: var(--glow-tired);
+}
+
+.candle-marker[data-emotion="fearful"] {
+  background-color: var(--emotion-fearful);
+  box-shadow: var(--glow-fearful);
 }
 
 .glow-dot {
   border-radius: 50%;
-  background: #ffffff;
-  box-shadow:
-    0 0 1px #ffd700,
-    0 0 5px #ffcc33,
-    0 0 10px #ffbb00;
+  background: var(--baby-powder);
+  /* Remove the default glow, it will be set by emotion */
   animation: flicker 2s ease-in-out infinite alternate;
+}
+
+/* Emotion-specific styles for glow-dot */
+.glow-dot[data-emotion="happy"] {
+  background-color: var(--emotion-happy);
+  box-shadow: var(--glow-happy);
+}
+
+.glow-dot[data-emotion="sad"] {
+  background-color: var(--emotion-sad);
+  box-shadow: var(--glow-sad);
+}
+
+.glow-dot[data-emotion="disgusted"] {
+  background-color: var(--emotion-disgusted);
+  box-shadow: var(--glow-disgusted);
+}
+
+.glow-dot[data-emotion="angry"] {
+  background-color: var(--emotion-angry);
+  box-shadow: var(--glow-angry);
+}
+
+.glow-dot[data-emotion="surprised"] {
+  background-color: var(--emotion-surprised);
+  box-shadow: var(--glow-surprised);
+}
+
+.glow-dot[data-emotion="tired"] {
+  background-color: var(--emotion-tired);
+  box-shadow: var(--glow-tired);
+}
+
+.glow-dot[data-emotion="fearful"] {
+  background-color: var(--emotion-fearful);
+  box-shadow: var(--glow-fearful);
 }
 
 /* When markers come close, intensify the glow */
 .candle-marker.merged {
-  width: 18px;  /* Increase the size when merged */
-  height: 18px; /* Increase the size when merged */
-  box-shadow: 0 0 15px rgba(248, 180, 0, 0.8); /* Stronger glowing effect */
+  width: 18px;
+  height: 18px;
+  filter: brightness(1.2);
 }
 
 /* FLICKER EFFECT */
 @keyframes flicker {
   0% {
-    box-shadow: 0 0 1px #ffd700, 0 0 5px #ffcc33, 0 0 1px #ff9900;
-    transform: scale(1);
     opacity: 0.9;
+    transform: scale(1);
   }
   100% {
-    box-shadow: 0 0 5px #ffd700, 0 0 10px #ffcc33, 0 0 20px #ffaa00;
-    transform: scale(1.1);
     opacity: 1;
+    transform: scale(1.1);
   }
 }

@@ -33,7 +33,7 @@ const Candle = ({
 
   const candleIcon = L.divIcon({
     className: '',
-    html: `<div class="glow-dot" style="width:${size}px;height:${size}px;"></div>`,
+    html: `<div class="glow-dot" data-emotion="${emotion}" style="width:${size}px;height:${size}px;"></div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
     popupAnchor: [0, -size / 2],
@@ -66,11 +66,13 @@ const Candle = ({
                 onChange={(e) => setTempMarker((prev) => ({ ...prev, emotion: e.target.value }))}
               >
                 <option value="">Select</option>
-                <option value="joy">Joy</option>
-                <option value="sadness">Sadness</option>
-                <option value="love">Love</option>
-                <option value="anger">Anger</option>
-                <option value="lonely">Lonely</option>
+                <option value="happy">Happy</option>
+                <option value="sad">Sad</option>
+                <option value="disgusted">Disgusted</option>
+                <option value="angry">Angry</option>
+                <option value="surprised">Surprised</option>
+                <option value="tired">Tired</option>
+                <option value="fearful">Fearful</option>
               </select>
             </label>
             <br />

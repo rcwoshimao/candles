@@ -1,0 +1,30 @@
+:root {
+  /* Base color palette */
+  --melon: #ffadadff;      /* Warm, soft red */
+  --sunset: #ffd6a5ff;     /* Warm orange */
+  --cream: #fdffb6ff;      /* Soft yellow */
+  --tea-green: #caffbfff;  /* Fresh green */
+  --electric-blue: #9bf6ffff; /* Bright blue */
+  --jordy-blue: #a0c4ffff;  /* Soft blue */
+  --periwinkle: #bdb2ffff;  /* Soft purple */
+  --mauve: #ffc6ffff;      /* Soft pink */
+  --baby-powder: #fffffcff; /* Off-white */
+
+  /* Emotion color mappings */
+  --emotion-happy: var(--cream);      /* Bright, cheerful yellow */
+  --emotion-sad: var(--jordy-blue);   /* Soft, melancholic blue */
+  --emotion-disgusted: var(--tea-green); /* Fresh, but can be unsettling */
+  --emotion-angry: var(--melon);      /* Intense red */
+  --emotion-surprised: var(--electric-blue); /* Bright, attention-grabbing blue */
+  --emotion-tired: var(--periwinkle); /* Soft, muted purple */
+  --emotion-fearful: var(--mauve);    /* Soft pink, can represent anxiety */
+
+  /* Glow effects for each emotion */
+  --glow-happy: 0 0 10px var(--cream), 0 0 20px var(--sunset);
+  --glow-sad: 0 0 10px var(--jordy-blue), 0 0 20px var(--periwinkle);
+  --glow-disgusted: 0 0 10px var(--tea-green), 0 0 20px var(--cream);
+  --glow-angry: 0 0 10px var(--melon), 0 0 20px var(--sunset);
+  --glow-surprised: 0 0 10px var(--electric-blue), 0 0 20px var(--jordy-blue);
+  --glow-tired: 0 0 10px var(--periwinkle), 0 0 20px var(--mauve);
+  --glow-fearful: 0 0 10px var(--mauve), 0 0 20px var(--periwinkle);
+} 
