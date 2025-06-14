@@ -47,7 +47,7 @@ export const Sidebar = () => {
   const [isFullyOpen, setIsFullyOpen] = useState(false);
   const containerRef = useRef(null);
   const { height } = useDimensions(containerRef);
-  const [sidebarWidth, setSidebarWidth] = useState(300);
+  const [sidebarWidth, setSidebarWidth] = useState(500);
   const [isResizing, setIsResizing] = useState(false);
   const startXRef = useRef(0);
   const startWidthRef = useRef(0);
@@ -73,7 +73,7 @@ export const Sidebar = () => {
       if (!isResizing) return;
 
       const deltaX = startXRef.current - e.clientX;
-      const newWidth = Math.min(Math.max(startWidthRef.current + deltaX, 200), 600);
+      const newWidth = Math.min(Math.max(startWidthRef.current + deltaX, 400), 800);
       setSidebarWidth(newWidth);
     };
 
