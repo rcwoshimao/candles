@@ -7,8 +7,6 @@
     z-index: 1; /* Lower z-index */
   }
 
-
-
   /* Style the zoom-in button */
 .leaflet-control-zoom-in {
   color: white !important; 

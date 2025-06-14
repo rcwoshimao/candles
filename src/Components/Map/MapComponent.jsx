@@ -1,9 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import './MapComponent.css'; 
 import Sidebar from '../Sidebar/Sidebar';
 import Candle from '../Candle/Candle';
+import { supabase } from '../../lib/supabase';
 
 const defaultCenter = [38.9072, -77.0369];
 const defaultZoom = 8;
@@ -26,64 +27,104 @@ const MapClickHandler = ({ onMapClick }) => {
 
 const MapComponent = () => {
   const mapRef = useRef();
-  const [markers, setMarkers] = useState(() => {
-    const stored = localStorage.getItem('candleMarkers');
-    if (stored) {
-      return JSON.parse(stored)
-        .filter(marker => marker !== null)
-        .map(marker => ({
-          ...marker,
-          userTimestamp: new Date(marker.userTimestamp),
-        }));
-    }
-    return [];
-  });
-  
-
+  const [markers, setMarkers] = useState([]);
   const [tempMarker, setTempMarker] = useState(null);
   const [lastAction, setLastAction] = useState('');
 
+  // Fetch markers from Supabase on component mount
+  useEffect(() => {
+    const fetchMarkers = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('markers')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (data) {
+          setMarkers(data.map(marker => ({
+            ...marker,
+            userTimestamp: new Date(marker.user_timestamp),
+          })));
+        }
+      } catch (error) {
+        console.error('Error fetching markers:', error);
+        setLastAction('Error fetching markers');
+      }
+    };
+
+    fetchMarkers();
+  }, []);
+
   const handleMapClick = (latlng) => {
-    const creatorTimestamp = new Date().toISOString(); // UTC timestamp
-    const userTimestamp = new Date(); // Local user timestamp as a Date object
+    const creatorTimestamp = new Date().toISOString();
+    const userTimestamp = new Date();
   
     setTempMarker({
-      id: crypto.randomUUID(),
       position: [latlng.lat, latlng.lng],
       emotion: '',
-      timestamp: creatorTimestamp,  // UTC timestamp
-      userTimestamp: userTimestamp, // Local timestamp as Date object
+      timestamp: creatorTimestamp,
+      userTimestamp: userTimestamp,
       userID: currentUserID,
     });
   
     setLastAction(`Marker placed at ${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`);
   };
   
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!tempMarker?.emotion) {
       alert("Please select an emotion.");
       return;
     }
   
-    const markerToSave = {
-      ...tempMarker,
-      userTimestamp: tempMarker.userTimestamp.toISOString(), // Convert to string
-    };
-  
-    const updatedMarkers = [...markers, markerToSave];
-    setMarkers(updatedMarkers);
-  
-    localStorage.setItem('candleMarkers', JSON.stringify(updatedMarkers));
-    setTempMarker(null);
-    setLastAction(`Marker saved at ${tempMarker.position[0].toFixed(4)}, ${tempMarker.position[1].toFixed(4)}`);
-  };
-  
+    try {
+      const { data, error } = await supabase
+        .from('markers')
+        .insert([
+          {
+            position: tempMarker.position,
+            emotion: tempMarker.emotion,
+            timestamp: tempMarker.timestamp,
+            user_timestamp: tempMarker.userTimestamp.toISOString(),
+            user_id: tempMarker.userID,
+          }
+        ])
+        .select()
+        .single();
 
-  const handleDelete = (idToDelete) => {
-    const updatedMarkers = markers.filter(marker => marker.id !== idToDelete);
-    setMarkers(updatedMarkers);
-    localStorage.setItem('candleMarkers', JSON.stringify(updatedMarkers)); 
-    setLastAction(`Marker with ID ${idToDelete} deleted`);
+      if (error) throw error;
+
+      if (data) {
+        const newMarker = {
+          ...data,
+          userTimestamp: new Date(data.user_timestamp),
+        };
+        setMarkers(prev => [...prev, newMarker]);
+        setTempMarker(null);
+        setLastAction(`Marker saved at ${tempMarker.position[0].toFixed(4)}, ${tempMarker.position[1].toFixed(4)}`);
+      }
+    } catch (error) {
+      console.error('Error saving marker:', error);
+      setLastAction('Error saving marker');
+    }
+  };
+
+  const handleDelete = async (idToDelete) => {
+    try {
+      const { error } = await supabase
+        .from('markers')
+        .delete()
+        .eq('id', idToDelete);
+
+      if (error) throw error;
+
+      setMarkers(prev => prev.filter(marker => marker.id !== idToDelete));
+      setLastAction(`Marker with ID ${idToDelete} deleted`);
+    } catch (error) {
+      console.error('Error deleting marker:', error);
+      setLastAction('Error deleting marker');
+    }
   };
 
   const worldBounds = [
@@ -101,38 +142,64 @@ const MapComponent = () => {
       </div>
 
       <div className="marker-actions-panel">
-        <button onClick={() => {
-          localStorage.removeItem('candleMarkers');
-          setMarkers([]);
-          setLastAction('All markers deleted');
+        <button onClick={async () => {
+          try {
+            // Delete all markers from Supabase
+            const { error } = await supabase
+              .from('markers')
+              .delete()
+              .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all markers
+
+            if (error) throw error;
+
+            setMarkers([]);
+            setLastAction('All markers deleted');
+          } catch (error) {
+            console.error('Error deleting all markers:', error);
+            setLastAction('Error deleting all markers');
+          }
         }}>
           Clear All Markers
         </button>
 
-        <button onClick={() => {
-          const randomOffset = (scale = 5) => (Math.random() - 0.5) * scale;
-          const sampleMarker = {
-            id: crypto.randomUUID(),
-            position: [
-              38.9072 + randomOffset(), // random latitude near DC
-              -77.0369 + randomOffset() // random longitude near DC
-            ],
-            emotion: ['joy', 'sadness', 'love', 'anger', 'lonely'][Math.floor(Math.random() * 5)], // random emotion
-            timestamp: new Date().toISOString(),
-            userTimestamp: new Date(),
-            userID: currentUserID,
-          };
+        <button onClick={async () => {
+          try {
+            const randomOffset = (scale = 5) => (Math.random() - 0.5) * scale;
+            const sampleMarker = {
+              position: [
+                38.9072 + randomOffset(), // random latitude near DC
+                -77.0369 + randomOffset() // random longitude near DC
+              ],
+              emotion: ['joy', 'sadness', 'love', 'anger', 'lonely'][Math.floor(Math.random() * 5)], // random emotion
+              timestamp: new Date().toISOString(),
+              user_timestamp: new Date().toISOString(),
+              user_id: currentUserID,
+            };
 
-          const updated = [...markers, sampleMarker];
-          localStorage.setItem('candleMarkers', JSON.stringify(updated));
-          setMarkers(updated);
-          setLastAction('Random sample marker added');
+            const { data, error } = await supabase
+              .from('markers')
+              .insert([sampleMarker])
+              .select()
+              .single();
+
+            if (error) throw error;
+
+            if (data) {
+              const newMarker = {
+                ...data,
+                userTimestamp: new Date(data.user_timestamp),
+              };
+              setMarkers(prev => [...prev, newMarker]);
+              setLastAction('Random sample marker added');
+            }
+          } catch (error) {
+            console.error('Error adding random marker:', error);
+            setLastAction('Error adding random marker');
+          }
         }}>
           Add Random Sample Marker
         </button>
       </div>
-
-
 
       <Sidebar />
       <MapContainer
