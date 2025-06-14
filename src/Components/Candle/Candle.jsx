@@ -14,6 +14,7 @@ const Candle = ({
   handleSave,
   userTimestamp,
   timestamp,
+  isUserCandle,
 }) => {
   const map = useMap();
   const zoom = map.getZoom();
@@ -86,7 +87,21 @@ const Candle = ({
             <p><strong>Emotion:</strong> {emotion}</p>
             <p><small><strong>Viewed at (Your Local Time):</strong> {formattedUserTime}</small></p>
             <p><small><strong>Placed at (Creator's Time):</strong> {formattedCreatorTime}</small></p>
-            <button onClick={() => handleDelete(id)}>Delete</button>
+            {isUserCandle && (
+              <button 
+                onClick={() => handleDelete(id)}
+                style={{ 
+                  backgroundColor: '#ff4444',
+                  color: 'white',
+                  border: 'none',
+                  padding: '5px 10px',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Delete My Candle
+              </button>
+            )}
           </div>
         )}
       </Popup>

@@ -16,6 +16,8 @@ if (!localStorage.getItem("userID")) {
 const currentUserID = localStorage.getItem("userID");
 console.log("Current User ID:", currentUserID);
 
+const USER_CANDLES_KEY = 'userCandles';
+
 const MapClickHandler = ({ onMapClick }) => {
   useMapEvents({
     click(e) {
@@ -30,6 +32,15 @@ const MapComponent = () => {
   const [markers, setMarkers] = useState([]);
   const [tempMarker, setTempMarker] = useState(null);
   const [lastAction, setLastAction] = useState('');
+  const [userCandles, setUserCandles] = useState(() => {
+    const saved = localStorage.getItem(USER_CANDLES_KEY);
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Save user's candles to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem(USER_CANDLES_KEY, JSON.stringify(userCandles));
+  }, [userCandles]);
 
   // Fetch markers from Supabase on component mount
   useEffect(() => {
@@ -43,10 +54,12 @@ const MapComponent = () => {
         if (error) throw error;
 
         if (data) {
-          setMarkers(data.map(marker => ({
+          const markersWithUserInfo = data.map(marker => ({
             ...marker,
             userTimestamp: new Date(marker.user_timestamp),
-          })));
+            isUserCandle: marker.user_id === currentUserID
+          }));
+          setMarkers(markersWithUserInfo);
         }
       } catch (error) {
         console.error('Error fetching markers:', error);
@@ -99,6 +112,7 @@ const MapComponent = () => {
         const newMarker = {
           ...data,
           userTimestamp: new Date(data.user_timestamp),
+          isUserCandle: true
         };
         setMarkers(prev => [...prev, newMarker]);
         setTempMarker(null);
@@ -111,16 +125,25 @@ const MapComponent = () => {
   };
 
   const handleDelete = async (idToDelete) => {
+    // Find the marker to check ownership
+    const markerToDelete = markers.find(marker => marker.id === idToDelete);
+    
+    if (!markerToDelete || markerToDelete.user_id !== currentUserID) {
+      setLastAction('You can only delete your own candles');
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('markers')
         .delete()
-        .eq('id', idToDelete);
+        .eq('id', idToDelete)
+        .eq('user_id', currentUserID); // Extra safety check on the database level
 
       if (error) throw error;
 
       setMarkers(prev => prev.filter(marker => marker.id !== idToDelete));
-      setLastAction(`Marker with ID ${idToDelete} deleted`);
+      setLastAction(`Your candle deleted`);
     } catch (error) {
       console.error('Error deleting marker:', error);
       setLastAction('Error deleting marker');
@@ -153,6 +176,7 @@ const MapComponent = () => {
             if (error) throw error;
 
             setMarkers([]);
+            setUserCandles([]);
             setLastAction('All markers deleted');
           } catch (error) {
             console.error('Error deleting all markers:', error);
@@ -188,8 +212,11 @@ const MapComponent = () => {
               const newMarker = {
                 ...data,
                 userTimestamp: new Date(data.user_timestamp),
+                isUserCandle: true
               };
               setMarkers(prev => [...prev, newMarker]);
+              // Add to user's candles
+              setUserCandles(prev => [...prev, data.id]);
               setLastAction('Random sample marker added');
             }
           } catch (error) {
@@ -229,8 +256,9 @@ const MapComponent = () => {
               position={marker.position}
               emotion={marker.emotion}
               timestamp={marker.timestamp}
-              userTimestamp={marker.userTimestamp} // Pass user time to Candle
+              userTimestamp={marker.userTimestamp}
               handleDelete={handleDelete}
+              isUserCandle={marker.isUserCandle}
             />
           )
         ))}
@@ -242,7 +270,7 @@ const MapComponent = () => {
             position={tempMarker.position}
             emotion={tempMarker.emotion}
             timestamp={tempMarker.timestamp}
-            userTimestamp={tempMarker.userTimestamp} // Pass user time to Candle
+            userTimestamp={tempMarker.userTimestamp}
             isTemp={true}
             setTempMarker={setTempMarker}
             handleSave={handleSave}

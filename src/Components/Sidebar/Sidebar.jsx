@@ -42,15 +42,30 @@ const resizeHandleVariants = {
   }
 };
 
+const DEFAULT_SIDEBAR_WIDTH = 300;
+const MIN_WIDTH = 200;
+const MAX_WIDTH = 600;
+
 export const Sidebar = () => {
   const [isOpen, toggleOpen] = useCycle(false, true);
   const [isFullyOpen, setIsFullyOpen] = useState(false);
   const containerRef = useRef(null);
   const { height } = useDimensions(containerRef);
-  const [sidebarWidth, setSidebarWidth] = useState(500);
+  
+  // Initialize sidebar width from localStorage or use default
+  const [sidebarWidth, setSidebarWidth] = useState(() => {
+    const savedWidth = localStorage.getItem('sidebarWidth');
+    return savedWidth ? parseInt(savedWidth, 10) : DEFAULT_SIDEBAR_WIDTH;
+  });
+  
   const [isResizing, setIsResizing] = useState(false);
   const startXRef = useRef(0);
   const startWidthRef = useRef(0);
+
+  // Save width to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('sidebarWidth', sidebarWidth.toString());
+  }, [sidebarWidth]);
 
   // Handle the animation completion
   const handleAnimationComplete = () => {
@@ -73,7 +88,7 @@ export const Sidebar = () => {
       if (!isResizing) return;
 
       const deltaX = startXRef.current - e.clientX;
-      const newWidth = Math.min(Math.max(startWidthRef.current + deltaX, 400), 800);
+      const newWidth = Math.min(Math.max(startWidthRef.current + deltaX, MIN_WIDTH), MAX_WIDTH);
       setSidebarWidth(newWidth);
     };
 
