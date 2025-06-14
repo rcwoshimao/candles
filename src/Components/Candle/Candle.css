@@ -48,15 +48,73 @@
 .glow-dot {
   border-radius: 50%;
   background: var(--baby-powder);
-  /* Base size that will be overridden by the dynamic class */
   width: 10px;
   height: 10px;
+  /* Use will-change to hint browser about animations */
+  will-change: transform, opacity, filter;
+  /* Use hardware acceleration */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  /* Optimize filter performance */
+  -webkit-filter: brightness(1);
+  filter: brightness(1);
 }
 
-/* Random flicker assignments */
-.glow-dot[data-flicker="1"] { animation: flicker1 1.5s ease-in-out infinite; }
-.glow-dot[data-flicker="2"] { animation: flicker2 1.8s ease-in-out infinite; }
-.glow-dot[data-flicker="3"] { animation: flicker3 2.1s ease-in-out infinite; }
+/* Optimized flicker animations with brightness */
+@keyframes flicker1 {
+  0%, 100% { 
+    transform: scale(0.95) translateZ(0);
+    opacity: 0.8;
+    filter: brightness(0.85);
+  }
+  50% { 
+    transform: scale(1.05) translateZ(0);
+    opacity: 1;
+    filter: brightness(1.15);
+  }
+}
+
+@keyframes flicker2 {
+  0%, 100% { 
+    transform: scale(0.98) translateZ(0);
+    opacity: 0.85;
+    filter: brightness(0.9);
+  }
+  50% { 
+    transform: scale(1.02) translateZ(0);
+    opacity: 0.95;
+    filter: brightness(1.1);
+  }
+}
+
+@keyframes flicker3 {
+  0%, 100% { 
+    transform: scale(0.97) translateZ(0);
+    opacity: 0.82;
+    filter: brightness(0.88);
+  }
+  50% { 
+    transform: scale(1.03) translateZ(0);
+    opacity: 0.9;
+    filter: brightness(1.12);
+  }
+}
+
+/* Optimized flicker assignments - longer durations to reduce CPU usage */
+.glow-dot[data-flicker="1"] { animation: flicker1 2s ease-in-out infinite; }
+.glow-dot[data-flicker="2"] { animation: flicker2 2.3s ease-in-out infinite; }
+.glow-dot[data-flicker="3"] { animation: flicker3 2.6s ease-in-out infinite; }
+
+/* Reduce animation complexity when many candles are present */
+@media (prefers-reduced-motion: reduce) {
+  .glow-dot[data-flicker="1"],
+  .glow-dot[data-flicker="2"],
+  .glow-dot[data-flicker="3"] {
+    animation: none;
+    opacity: 0.9;
+    filter: brightness(1);
+  }
+}
 
 /* Dynamic size classes for different zoom levels */
 .glow-dot[data-size="small"] { width: 10px; height: 10px; }
@@ -104,71 +162,6 @@
   width: 18px;
   height: 18px;
   filter: brightness(1.2);
-}
-
-/* Multiple flicker animations with different timings */
-@keyframes flicker1 {
-  0% {
-    opacity: 0.7;
-    transform: scale(0.9);
-    filter: brightness(0.8);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.1);
-    filter: brightness(1.2);
-  }
-  100% {
-    opacity: 0.8;
-    transform: scale(1);
-    filter: brightness(1);
-  }
-}
-
-@keyframes flicker2 {
-  0% {
-    opacity: 0.8;
-    transform: scale(0.95);
-    filter: brightness(0.9);
-  }
-  33% {
-    opacity: 0.9;
-    transform: scale(1.05);
-    filter: brightness(1.1);
-  }
-  66% {
-    opacity: 1;
-    transform: scale(1.1);
-    filter: brightness(1.2);
-  }
-  100% {
-    opacity: 0.85;
-    transform: scale(1);
-    filter: brightness(1);
-  }
-}
-
-@keyframes flicker3 {
-  0% {
-    opacity: 0.75;
-    transform: scale(0.92);
-    filter: brightness(0.85);
-  }
-  25% {
-    opacity: 0.9;
-    transform: scale(1.08);
-    filter: brightness(1.15);
-  }
-  75% {
-    opacity: 0.95;
-    transform: scale(1.05);
-    filter: brightness(1.1);
-  }
-  100% {
-    opacity: 0.8;
-    transform: scale(0.98);
-    filter: brightness(0.95);
-  }
 }
 
 /* Button styles */

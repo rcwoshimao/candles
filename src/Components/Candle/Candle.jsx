@@ -1,10 +1,21 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Marker, Popup, useMap } from 'react-leaflet';
 import { format } from 'date-fns';
 import L from 'leaflet';
 import './Candle.css';
 
-const Candle = ({
+// Memoize the random flicker function to avoid recalculation
+const getRandomFlicker = (() => {
+  const flickers = new Map();
+  return (id) => {
+    if (!flickers.has(id)) {
+      flickers.set(id, Math.floor(Math.random() * 3) + 1);
+    }
+    return flickers.get(id);
+  };
+})();
+
+const Candle = React.memo(({
   id,
   position,
   emotion,
@@ -19,49 +30,48 @@ const Candle = ({
   const map = useMap();
   const zoom = map.getZoom();
 
-  // Scale marker size based on zoom level (but not 1:1)
-  //const safeZoom = !isNaN(zoom) ? zoom : 8;  // Fallback to 8 if zoom is invalid
-  const baseSize = 10;  // Base size at zoom 0
-  const scaleFactor = 1.2; // Determines how quickly the size increases with zoom
+  // Memoize size calculations
+  const { size, sizeClass } = useMemo(() => {
+    const baseSize = 10;
+    const scaleFactor = 1.2;
+    const size = Math.max(10, Math.min(1, baseSize * Math.pow(scaleFactor, zoom)));
+    return {
+      size,
+      sizeClass: size <= 10 ? "small" : size <= 15 ? "medium" : "large"
+    };
+  }, [zoom]);
 
-  // Logarithmic scale for smoother scaling
-  const size = Math.max(10, Math.min(1, baseSize * Math.pow(scaleFactor, zoom)));
+  // Memoize the icon creation
+  const candleIcon = useMemo(() => {
+    return L.divIcon({
+      className: '',
+      html: `<div class="glow-dot" data-emotion="${emotion}" data-size="${sizeClass}" data-flicker="${getRandomFlicker(id)}"></div>`,
+      iconSize: [size, size],
+      iconAnchor: [size / 2, size / 2],
+      popupAnchor: [0, -size / 2],
+    });
+  }, [emotion, sizeClass, size, id]);
 
-  // Scale marker size based on zoom level
-  const getSizeClass = (size) => {
-    if (size <= 10) return "small";
-    if (size <= 15) return "medium";
-    return "large";
-  };
+  // Memoize formatted dates
+  const { formattedUserTime, formattedCreatorTime } = useMemo(() => {
+    let userTime = 'Invalid date';
+    let creatorTime = 'Invalid date';
+    
+    try {
+      userTime = format(new Date(userTimestamp), 'yyyy-MM-dd HH:mm:ss');
+    } catch (e) {
+      console.warn('Invalid userTimestamp:', userTimestamp);
+    }
+    
+    try {
+      creatorTime = format(new Date(timestamp), 'yyyy-MM-dd HH:mm:ss');
+    } catch (e) {
+      console.warn('Invalid creatorTimestamp:', timestamp);
+    }
 
-  console.log("zoom", zoom, "size", size); // Now should never show NaN
+    return { formattedUserTime: userTime, formattedCreatorTime: creatorTime };
+  }, [userTimestamp, timestamp]);
 
-  // Get random flicker animation (1-3)
-  const getRandomFlicker = () => Math.floor(Math.random() * 3) + 1;
-
-  const candleIcon = L.divIcon({
-    className: '',
-    html: `<div class="glow-dot" data-emotion="${emotion}" data-size="${getSizeClass(size)}" data-flicker="${getRandomFlicker()}"></div>`,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
-    popupAnchor: [0, -size / 2],
-  });
-
-  let formattedUserTime = 'Invalid date';
-  let formattedCreatorTime = 'Invalid date';
-  
-  try {
-    formattedUserTime = format(new Date(userTimestamp), 'yyyy-MM-dd HH:mm:ss');
-  } catch (e) {
-    console.warn('Invalid userTimestamp:', userTimestamp);
-  }
-  
-  try {
-    formattedCreatorTime = format(new Date(timestamp), 'yyyy-MM-dd HH:mm:ss');
-  } catch (e) {
-    console.warn('Invalid creatorTimestamp:', timestamp);
-  }
-  
   return (
     <Marker position={position} icon={candleIcon}>
       <Popup>
@@ -107,6 +117,8 @@ const Candle = ({
       </Popup>
     </Marker>
   );
-};
+});
+
+Candle.displayName = 'Candle';
 
 export default Candle;
