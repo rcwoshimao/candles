@@ -189,14 +189,7 @@ const MapComponent = () => {
   ];
   
   return (
-    <>
-      <div className="debug-panel">
-        <div><strong>Debug Panel</strong></div>
-        <div>User ID: {currentUserID}</div>
-        <div>Markers: {markers.length}</div>
-        <div>Last Action: {lastAction || 'No action yet'}</div>
-      </div>
-
+    <div className="map-component-wrapper">
       <div className="marker-actions-panel">
         <button onClick={async () => {
           try {
@@ -204,7 +197,7 @@ const MapComponent = () => {
             const { error } = await supabase
               .from('markers')
               .delete()
-              .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all markers
+              .neq('id', '00000000-0000-0000-0000-000000000000');
 
             if (error) throw error;
 
@@ -224,10 +217,10 @@ const MapComponent = () => {
             const randomOffset = (scale = 5) => (Math.random() - 0.5) * scale;
             const sampleMarker = {
               position: [
-                38.9072 + randomOffset(), // random latitude near DC
-                -77.0369 + randomOffset() // random longitude near DC
+                38.9072 + randomOffset(),
+                -77.0369 + randomOffset()
               ],
-              emotion: ['happy', 'sad', 'disgusted', 'angry', 'surprised', 'tired', 'fearful'][Math.floor(Math.random() * 7)], // random emotion from new set
+              emotion: ['happy', 'sad', 'disgusted', 'angry', 'surprised', 'tired', 'fearful'][Math.floor(Math.random() * 7)],
               timestamp: new Date().toISOString(),
               user_timestamp: new Date().toISOString(),
               user_id: currentUserID,
@@ -248,7 +241,6 @@ const MapComponent = () => {
                 isUserCandle: true
               };
               setMarkers(prev => [...prev, newMarker]);
-              // Add to user's candles
               setUserCandles(prev => [...prev, data.id]);
               setLastAction('Random sample marker added');
             }
@@ -259,6 +251,12 @@ const MapComponent = () => {
         }}>
           Add Random Sample Marker
         </button>
+
+        <div><strong>Debug Panel</strong></div>
+        <div>User ID: {currentUserID}</div>
+        <div>Markers: {markers.length}</div>
+        <div>Last Action: {lastAction || 'No action yet'}</div>
+
       </div>
 
       <Sidebar markers={markers}/>
@@ -323,7 +321,7 @@ const MapComponent = () => {
           tempMarker={tempMarker}
         />
       )}
-    </>
+    </div>
   );
 };
 

@@ -3,72 +3,113 @@ import styled from '@emotion/styled';
 
 const PopupContainer = styled.div`
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(0, 0, 0, 0.9);
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.95);
   color: white;
-  padding: 20px;
+  padding: ${props => props.step === 1 ? '30px' : '20px'};
   z-index: 2000;
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  gap: ${props => props.step === 1 ? '20px' : '15px'};
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: ${props => props.step === 1 ? '20px' : '12px'};
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  width: ${props => props.step === 1 ? '400px' : '300px'};
+  transition: all 0.3s ease-in-out;
+  margin-bottom: ${props => props.step === 1 ? '20px' : '10px'};
 `;
 
 const StepIndicator = styled.div`
   display: flex;
   justify-content: center;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 8px;
+  margin-bottom: ${props => props.step === 1 ? '10px' : '5px'};
 `;
 
 const Step = styled.div`
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: ${props => props.active ? 'white' : 'rgba(255, 255, 255, 0.3)'};
+  transition: all 0.3s ease;
 `;
 
 const ButtonContainer = styled.div`
   display: flex;
   gap: 10px;
   justify-content: center;
+  margin-top: ${props => props.step === 1 ? '10px' : '5px'};
 `;
 
 const Button = styled.button`
-  padding: 8px 16px;
-  border: 1px solid white;
-  border-radius: 4px;
+  padding: ${props => props.step === 1 ? '10px 20px' : '8px 16px'};
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
   background: ${props => props.primary ? 'white' : 'transparent'};
   color: ${props => props.primary ? 'black' : 'white'};
   cursor: pointer;
   transition: all 0.2s;
+  font-size: ${props => props.step === 1 ? '14px' : '13px'};
+  font-weight: 500;
 
   &:hover {
     background: ${props => props.primary ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.1)'};
+    border-color: ${props => props.primary ? 'white' : 'rgba(255, 255, 255, 0.5)'};
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
   }
 `;
 
 const EmotionGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
   margin: 10px 0;
+  transition: all 0.3s ease;
 `;
 
 const EmotionButton = styled.button`
-  padding: 10px;
-  border: 1px solid ${props => props.selected ? 'white' : 'rgba(255, 255, 255, 0.3)'};
-  border-radius: 4px;
+  padding: 12px;
+  border: 1px solid ${props => props.selected ? 'white' : 'rgba(255, 255, 255, 0.2)'};
+  border-radius: 12px;
   background: ${props => props.selected ? 'white' : 'transparent'};
   color: ${props => props.selected ? 'black' : 'white'};
   cursor: pointer;
   transition: all 0.2s;
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: capitalize;
 
   &:hover {
     background: ${props => props.selected ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.1)'};
+    border-color: ${props => props.selected ? 'white' : 'rgba(255, 255, 255, 0.4)'};
+    transform: translateY(-2px);
   }
+
+  &:active {
+    transform: translateY(0);
+  }
+`;
+
+const Title = styled.h3`
+  margin: 0;
+  font-size: ${props => props.step === 1 ? '20px' : '16px'};
+  text-align: center;
+  font-weight: 500;
+  color: white;
+  transition: all 0.3s ease;
 `;
 
 const emotions = [
@@ -90,7 +131,7 @@ const CandleCreationPopup = ({
       case 1:
         return (
           <>
-            <h3>Step 1: Choose an emotion</h3>
+            <Title step={step}>Choose an emotion</Title>
             <EmotionGrid>
               {emotions.map(emotion => (
                 <EmotionButton
@@ -102,14 +143,15 @@ const CandleCreationPopup = ({
                 </EmotionButton>
               ))}
             </EmotionGrid>
-            <ButtonContainer>
-              <Button onClick={onCancel}>Cancel</Button>
+            <ButtonContainer step={step}>
+              <Button onClick={onCancel} step={step}>Cancel</Button>
               <Button 
                 primary 
                 onClick={onPlaceCandle}
                 disabled={!selectedEmotion}
+                step={step}
               >
-                Next: Choose Location
+                Choose Location
               </Button>
             </ButtonContainer>
           </>
@@ -117,14 +159,17 @@ const CandleCreationPopup = ({
       case 2:
         return (
           <>
-            <h3>Step 2: Place your candle</h3>
-            <p>Click anywhere on the map to place your {selectedEmotion} candle. You can drag it to adjust the position.</p>
-            <ButtonContainer>
-              <Button onClick={onCancel}>Cancel</Button>
+            <Title step={step}>Place your candle</Title>
+            <p style={{ margin: '0 0 15px 0', fontSize: '14px', textAlign: 'center', opacity: 0.9 }}>
+              Click anywhere on the map to place your candle. You can drag it to adjust the position.
+            </p>
+            <ButtonContainer step={step}>
+              <Button onClick={onCancel} step={step}>Cancel</Button>
               {tempMarker && (
                 <Button 
                   primary 
                   onClick={onConfirm}
+                  step={step}
                 >
                   Confirm Placement
                 </Button>
@@ -136,8 +181,8 @@ const CandleCreationPopup = ({
   };
 
   return (
-    <PopupContainer>
-      <StepIndicator>
+    <PopupContainer step={step}>
+      <StepIndicator step={step}>
         <Step active={step === 1} />
         <Step active={step === 2} />
       </StepIndicator>
