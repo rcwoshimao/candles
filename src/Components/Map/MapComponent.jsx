@@ -4,6 +4,8 @@ import 'leaflet/dist/leaflet.css';
 import './MapComponent.css'; 
 import Sidebar from '../Sidebar/Sidebar';
 import Candle from '../Candle/Candle';
+import CreateCandleButton from '../CreateCandleButton';
+import CandleCreationPopup from '../Candle/CandleCreationPopup';
 import { supabase } from '../../lib/supabase';
 
 const defaultCenter = [38.9072, -77.0369];
@@ -18,23 +20,13 @@ console.log("Current User ID:", currentUserID);
 
 const USER_CANDLES_KEY = 'userCandles';
 
-const MapClickHandler = ({ onMapClick, tempMarker }) => {
-  useMapEvents({
-    click(e) {
-      // Only trigger map click if there's no temp marker
-      if (!tempMarker) {
-        onMapClick(e.latlng);
-      }
-    },
-  });
-  return null;
-};
-
 const MapComponent = () => {
   const mapRef = useRef();
   const [markers, setMarkers] = useState([]);
   const [tempMarker, setTempMarker] = useState(null);
   const [lastAction, setLastAction] = useState('');
+  const [creationStep, setCreationStep] = useState(0); // 0: not creating, 1: choose emotion, 2: place candle, 3: confirm
+  const [selectedEmotion, setSelectedEmotion] = useState(null);
   const [userCandles, setUserCandles] = useState(() => {
     const saved = localStorage.getItem(USER_CANDLES_KEY);
     return saved ? JSON.parse(saved) : [];
@@ -73,24 +65,57 @@ const MapComponent = () => {
     fetchMarkers();
   }, []);
 
-  const handleMapClick = (latlng) => {
-    console.log('Map click triggered at:', latlng);
-    const creatorTimestamp = new Date().toISOString();
-    const userTimestamp = new Date();
+  // Add MapClickHandler component inside MapComponent
+  const MapClickHandler = () => {
+    useMapEvents({
+      click(e) {
+        if (creationStep === 2) {
+          const creatorTimestamp = new Date().toISOString();
+          const userTimestamp = new Date();
 
-    const newTempMarker={
-      position: [latlng.lat, latlng.lng],
-      emotion: '',
-      timestamp:creatorTimestamp,
-      userTimestamp: userTimestamp,
-      userID: currentUserID,
-    }
-    console.log('Initial temp marker:', newTempMarker); // log initial state
-    setTempMarker(newTempMarker);
-  
-    setLastAction(`Marker placed at ${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`);
+          const newTempMarker = {
+            position: [e.latlng.lat, e.latlng.lng],
+            emotion: selectedEmotion,
+            timestamp: creatorTimestamp,
+            userTimestamp: userTimestamp,
+            userID: currentUserID,
+          };
+
+          setTempMarker(newTempMarker);
+          // Don't change step here - stay in step 2
+          setLastAction(`Candle placed at ${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`);
+        }
+      },
+    });
+    return null;
   };
-  
+
+  const handleCandleCreate = () => {
+    setCreationStep(1);
+    setLastAction('Choose an emotion for your candle');
+  };
+
+  const handleEmotionSelect = (emotion) => {
+    setSelectedEmotion(emotion);
+  };
+
+  const handlePlaceCandle = () => {
+    if (!selectedEmotion) {
+      setLastAction('Please select an emotion first');
+      return;
+    }
+    setCreationStep(2);
+    setLastAction('Click anywhere on the map to place your candle. You can drag it to adjust the position.');
+  };
+
+
+  const handleCancel = () => {
+    setCreationStep(0);
+    setSelectedEmotion(null);
+    setTempMarker(null);
+    setLastAction('Candle creation cancelled');
+  };
+
   const handleSave = async () => {
     if (!tempMarker?.emotion) {
       alert("Please select an emotion.");
@@ -122,7 +147,9 @@ const MapComponent = () => {
         };
         setMarkers(prev => [...prev, newMarker]);
         setTempMarker(null);
-        setLastAction(`Marker saved at ${tempMarker.position[0].toFixed(4)}, ${tempMarker.position[1].toFixed(4)}`);
+        setSelectedEmotion(null);
+        setCreationStep(0);
+        setLastAction(`Candle saved at ${tempMarker.position[0].toFixed(4)}, ${tempMarker.position[1].toFixed(4)}`);
       }
     } catch (error) {
       console.error('Error saving marker:', error);
@@ -243,7 +270,7 @@ const MapComponent = () => {
         maxZoom={18}
         maxBounds={worldBounds}
         maxBoundsViscosity={1.0}
-        className="MapContainer map-container"
+        className={`MapContainer map-container ${creationStep === 2 ? 'placing-candle' : ''}`}
       >
         <TileLayer
           className='tile-layer'
@@ -251,10 +278,7 @@ const MapComponent = () => {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
 
-        <MapClickHandler 
-          onMapClick={handleMapClick} 
-          tempMarker={tempMarker}
-        />
+        <MapClickHandler />
 
         {markers.map(marker => (
           marker && (
@@ -273,8 +297,8 @@ const MapComponent = () => {
 
         {tempMarker && (
           <Candle
-            key={tempMarker.id}
-            id={tempMarker.id}
+            key="temp-marker"
+            id="temp-marker"
             position={tempMarker.position}
             emotion={tempMarker.emotion}
             timestamp={tempMarker.timestamp}
@@ -284,7 +308,21 @@ const MapComponent = () => {
             handleSave={handleSave}
           />
         )}
+
+        <CreateCandleButton onCandleCreate={handleCandleCreate} />
       </MapContainer>
+
+      {creationStep > 0 && (
+        <CandleCreationPopup
+          step={creationStep}
+          selectedEmotion={selectedEmotion}
+          onEmotionSelect={handleEmotionSelect}
+          onConfirm={handleSave}
+          onCancel={handleCancel}
+          onPlaceCandle={handlePlaceCandle}
+          tempMarker={tempMarker}
+        />
+      )}
     </>
   );
 };
