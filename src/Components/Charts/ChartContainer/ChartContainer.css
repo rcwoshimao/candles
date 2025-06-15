@@ -1,0 +1,35 @@
+.chart-container {
+  padding: 20px;
+  color: white;
+}
+
+.chart-container h2 {
+  margin: 0 0 20px 0;
+  font-size: 1.5em;
+  color: var(--baby-powder);
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  width: 100%;
+}
+
+.chart-placeholder {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 20px;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.chart-placeholder p {
+  color: var(--baby-powder);
+  opacity: 0.7;
+  font-size: 1.1em;
+} 

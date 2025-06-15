@@ -228,7 +228,7 @@ const MapComponent = () => {
         </button>
       </div>
 
-      <Sidebar />
+      <Sidebar markers={markers}/>
       <MapContainer
         ref={mapRef}
         center={defaultCenter}

@@ -1,0 +1,68 @@
+.emotion-chart {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.emotion-bar {
+  display: grid;
+  grid-template-columns: 100px 1fr 60px;
+  align-items: center;
+  gap: 10px;
+}
+
+.emotion-label {
+  color: var(--baby-powder);
+  text-transform: capitalize;
+  font-size: 0.9em;
+}
+
+.emotion-bar-container {
+  height: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.emotion-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--candle-glow) 0%, var(--candle-glow-light) 100%);
+  border-radius: 10px;
+  transition: width 0.3s ease-out;
+}
+
+.emotion-bar-fill[data-emotion="happy"] {
+    background: linear-gradient(90deg, var(--emotion-happy) 0%, var(--emotion-happy) 100%);
+}
+
+.emotion-bar-fill[data-emotion="sad"] {
+    background: linear-gradient(90deg, var(--emotion-sad) 0%, var(--emotion-sad) 100%);
+}
+
+.emotion-bar-fill[data-emotion="disgusted"] {
+    background: linear-gradient(90deg, var(--emotion-disgusted) 0%, var(--emotion-disgusted) 100%);
+}
+
+.emotion-bar-fill[data-emotion="angry"] {
+    background: linear-gradient(90deg, var(--emotion-angry) 0%, var(--emotion-angry) 100%);
+}
+
+.emotion-bar-fill[data-emotion="surprised"] {
+    background: linear-gradient(90deg, var(--emotion-surprised) 0%, var(--emotion-surprised) 100%);
+}
+
+.emotion-bar-fill[data-emotion="tired"] {
+    background: linear-gradient(90deg, var(--emotion-tired) 0%, var(--emotion-tired) 100%);
+}
+
+.emotion-bar-fill[data-emotion="fearful"] {
+    background: linear-gradient(90deg, var(--emotion-fearful) 0%, var(--emotion-fearful) 100%);
+}
+
+
+.emotion-count {
+  color: var(--baby-powder);
+  font-size: 0.9em;
+  text-align: right;
+} 

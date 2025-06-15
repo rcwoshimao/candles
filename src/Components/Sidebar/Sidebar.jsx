@@ -5,6 +5,7 @@ import { useDimensions } from "./use-dimensions";
 import { MenuToggle } from "./MenuToggle";
 import { Navigation } from "./Navigation";
 import './Sidebar.css';
+import ChartContainer from "../Charts/ChartContainer/ChartContainer";
 
 const sidebar = {
   open: (height = 1000) => ({
@@ -46,7 +47,7 @@ const DEFAULT_SIDEBAR_WIDTH = 300;
 const MIN_WIDTH = 200;
 const MAX_WIDTH = 600;
 
-export const Sidebar = () => {
+export const Sidebar = ({markers}) => {
   const [isOpen, toggleOpen] = useCycle(false, true);
   const [isFullyOpen, setIsFullyOpen] = useState(false);
   const containerRef = useRef(null);
@@ -125,7 +126,13 @@ export const Sidebar = () => {
           animate={isOpen ? "open" : "closed"}
           custom={height}
         >
-          <Navigation isOpen={isOpen} />
+          
+          {/* Start charts  */}
+          <div className="sidebar-charts-container">
+            {isOpen && <ChartContainer markers={markers} />}
+          </div>
+          {/* End charts  */}
+
         </motion.div>
         <motion.div 
           className="sidebar-resize-handle"
