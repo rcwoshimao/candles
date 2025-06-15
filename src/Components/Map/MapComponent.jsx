@@ -18,10 +18,13 @@ console.log("Current User ID:", currentUserID);
 
 const USER_CANDLES_KEY = 'userCandles';
 
-const MapClickHandler = ({ onMapClick }) => {
+const MapClickHandler = ({ onMapClick, tempMarker }) => {
   useMapEvents({
     click(e) {
-      onMapClick(e.latlng);
+      // Only trigger map click if there's no temp marker
+      if (!tempMarker) {
+        onMapClick(e.latlng);
+      }
     },
   });
   return null;
@@ -71,16 +74,19 @@ const MapComponent = () => {
   }, []);
 
   const handleMapClick = (latlng) => {
+    console.log('Map click triggered at:', latlng);
     const creatorTimestamp = new Date().toISOString();
     const userTimestamp = new Date();
-  
-    setTempMarker({
+
+    const newTempMarker={
       position: [latlng.lat, latlng.lng],
       emotion: '',
-      timestamp: creatorTimestamp,
+      timestamp:creatorTimestamp,
       userTimestamp: userTimestamp,
       userID: currentUserID,
-    });
+    }
+    console.log('Initial temp marker:', newTempMarker); // log initial state
+    setTempMarker(newTempMarker);
   
     setLastAction(`Marker placed at ${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`);
   };
@@ -245,7 +251,10 @@ const MapComponent = () => {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
 
-        <MapClickHandler onMapClick={handleMapClick} />
+        <MapClickHandler 
+          onMapClick={handleMapClick} 
+          tempMarker={tempMarker}
+        />
 
         {markers.map(marker => (
           marker && (

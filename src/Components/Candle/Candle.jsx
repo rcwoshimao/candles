@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Marker, Popup, useMap } from 'react-leaflet';
 import { format } from 'date-fns';
 import L from 'leaflet';
 import './Candle.css';
+import EmotionSelectionPopup from './EmotionSelectionPopup';
 
 // Memoize the random flicker function to avoid recalculation
 const getRandomFlicker = (() => {
@@ -29,6 +30,7 @@ const Candle = React.memo(({
 }) => {
   const map = useMap();
   const zoom = map.getZoom();
+  const [showEmotionPopup, setShowEmotionPopup] = useState(false);
 
   // Memoize size calculations
   const { size, sizeClass } = useMemo(() => {
@@ -72,50 +74,57 @@ const Candle = React.memo(({
     return { formattedUserTime: userTime, formattedCreatorTime: creatorTime };
   }, [userTimestamp, timestamp]);
 
+  const handleConfirmPlacement = () => {
+    setShowEmotionPopup(true);
+  };
+
+  const handleCancelPlacement = () => {
+    setTempMarker(null);
+  };
+
+  const handleEmotionPopupClose = () => {
+    setShowEmotionPopup(false);
+    setTempMarker(null);
+  };
+
   return (
-    <Marker position={position} icon={candleIcon}>
-      <Popup>
-        {isTemp ? (
-          <div>
-            <label>
-              Emotion:
-              <select
-                value={emotion}
-                onChange={(e) => setTempMarker((prev) => ({ ...prev, emotion: e.target.value }))}
-              >
-                <option value="">Select</option>
-                <option value="happy">Happy</option>
-                <option value="sad">Sad</option>
-                <option value="disgusted">Disgusted</option>
-                <option value="angry">Angry</option>
-                <option value="surprised">Surprised</option>
-                <option value="tired">Tired</option>
-                <option value="fearful">Fearful</option>
-              </select>
-            </label>
-            <br />
-            <button onClick={handleSave}>Save Candle</button>
-            <button onClick={() => setTempMarker(null)} className="cancel-button">
-              Cancel
-            </button>
-          </div>
-        ) : (
-          <div>
-            <p><strong>Emotion:</strong> {emotion}</p>
-            <p><small><strong>Viewed at (Your Local Time):</strong> {formattedUserTime}</small></p>
-            <p><small><strong>Placed at (Creator's Time):</strong> {formattedCreatorTime}</small></p>
-            {isUserCandle && (
-              <button 
-                onClick={() => handleDelete(id)}
-                className="delete-button"
-              >
-                Delete My Candle
-              </button>
-            )}
-          </div>
-        )}
-      </Popup>
-    </Marker>
+    <>
+      <Marker position={position} icon={candleIcon}>
+        <Popup>
+          {isTemp ? (
+            <div>
+              <p>Place candle here?</p>
+              <button onClick={handleConfirmPlacement}>Yes</button>
+              <button onClick={handleCancelPlacement}>No</button>
+            </div>
+          ) : (
+            <div>
+              <p><strong>Emotion:</strong> {emotion}</p>
+              <p><small><strong>Viewed at (Your Local Time):</strong> {formattedUserTime}</small></p>
+              <p><small><strong>Placed at (Creator's Time):</strong> {formattedCreatorTime}</small></p>
+              {isUserCandle && (
+                <button 
+                  onClick={() => handleDelete(id)}
+                  className="delete-button"
+                >
+                  Delete My Candle
+                </button>
+              )}
+            </div>
+          )}
+        </Popup>
+      </Marker>
+
+      {isTemp && (
+        <EmotionSelectionPopup
+          emotion={emotion}
+          setTempMarker={setTempMarker}
+          handleSave={handleSave}
+          onClose={handleEmotionPopupClose}
+          isOpen={showEmotionPopup}
+        />
+      )}
+    </>
   );
 });
 
