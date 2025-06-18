@@ -3,53 +3,18 @@
 .candle-marker {
   position: absolute;
   border-radius: 50%;
-  width: 12px;
-  height: 12px;
-  pointer-events: none;
   transition: all 0.3s ease;
 }
 
-/* Emotion-specific styles */
-.candle-marker[data-emotion="happy"] {
-  background-color: var(--emotion-happy);
-  box-shadow: var(--glow-happy);
-}
-
-.candle-marker[data-emotion="sad"] {
-  background-color: var(--emotion-sad);
-  box-shadow: var(--glow-sad);
-}
-
-.candle-marker[data-emotion="disgusted"] {
-  background-color: var(--emotion-disgusted);
-  box-shadow: var(--glow-disgusted);
-}
-
-.candle-marker[data-emotion="angry"] {
-  background-color: var(--emotion-angry);
-  box-shadow: var(--glow-angry);
-}
-
-.candle-marker[data-emotion="surprised"] {
-  background-color: var(--emotion-surprised);
-  box-shadow: var(--glow-surprised);
-}
-
-.candle-marker[data-emotion="tired"] {
-  background-color: var(--emotion-tired);
-  box-shadow: var(--glow-tired);
-}
-
-.candle-marker[data-emotion="fearful"] {
-  background-color: var(--emotion-fearful);
-  box-shadow: var(--glow-fearful);
+/* Remove emotion-specific styles from candle-marker since we're using glow-dot */
+.candle-marker[data-emotion] {
+  background: none;
+  box-shadow: none;
 }
 
 .glow-dot {
   border-radius: 50%;
-  background: var(--baby-powder);
-  width: 10px;
-  height: 10px;
+  /* Remove the default background color to use emotion-specific colors */
   /* Use will-change to hint browser about animations */
   will-change: transform, opacity, filter;
   /* Use hardware acceleration */
@@ -58,6 +23,9 @@
   /* Optimize filter performance */
   -webkit-filter: brightness(1);
   filter: brightness(1);
+  transition: all 0.3s ease;
+  /* Add pointer-events to make the dot interactive */
+  pointer-events: auto;
 }
 
 /* Optimized flicker animations with brightness */
@@ -117,44 +85,55 @@
 }
 
 /* Dynamic size classes for different zoom levels */
-.glow-dot[data-size="small"] { width: 10px; height: 10px; }
-.glow-dot[data-size="medium"] { width: 15px; height: 15px; }
-.glow-dot[data-size="large"] { width: 20px; height: 20px; }
+.glow-dot[data-size="small"] { 
+  width: 8px !important; 
+  height: 8px !important; 
+}
 
-/* Emotion-specific styles for glow-dot */
+.glow-dot[data-size="medium"] { 
+  width: 12px !important; 
+  height: 12px !important; 
+}
+
+.glow-dot[data-size="large"] { 
+  width: 16px !important; 
+  height: 16px !important; 
+}
+
+/* Emotion-specific styles for glow-dot - make these more prominent */
 .glow-dot[data-emotion="happy"] {
-  background-color: var(--emotion-happy);
-  box-shadow: var(--glow-happy);
+  background-color: var(--emotion-happy) !important;
+  box-shadow: 0 0 10px var(--emotion-happy), 0 0 20px var(--emotion-happy) !important;
 }
 
 .glow-dot[data-emotion="sad"] {
-  background-color: var(--emotion-sad);
-  box-shadow: var(--glow-sad);
+  background-color: var(--emotion-sad) !important;
+  box-shadow: 0 0 10px var(--emotion-sad), 0 0 20px var(--emotion-sad) !important;
 }
 
 .glow-dot[data-emotion="disgusted"] {
-  background-color: var(--emotion-disgusted);
-  box-shadow: var(--glow-disgusted);
+  background-color: var(--emotion-disgusted) !important;
+  box-shadow: 0 0 10px var(--emotion-disgusted), 0 0 20px var(--emotion-disgusted) !important;
 }
 
 .glow-dot[data-emotion="angry"] {
-  background-color: var(--emotion-angry);
-  box-shadow: var(--glow-angry);
+  background-color: var(--emotion-angry) !important;
+  box-shadow: 0 0 10px var(--emotion-angry), 0 0 20px var(--emotion-angry) !important;
 }
 
 .glow-dot[data-emotion="surprised"] {
-  background-color: var(--emotion-surprised);
-  box-shadow: var(--glow-surprised);
+  background-color: var(--emotion-surprised) !important;
+  box-shadow: 0 0 10px var(--emotion-surprised), 0 0 20px var(--emotion-surprised) !important;
 }
 
 .glow-dot[data-emotion="tired"] {
-  background-color: var(--emotion-tired);
-  box-shadow: var(--glow-tired);
+  background-color: var(--emotion-tired) !important;
+  box-shadow: 0 0 10px var(--emotion-tired), 0 0 20px var(--emotion-tired) !important;
 }
 
 .glow-dot[data-emotion="fearful"] {
-  background-color: var(--emotion-fearful);
-  box-shadow: var(--glow-fearful);
+  background-color: var(--emotion-fearful) !important;
+  box-shadow: 0 0 10px var(--emotion-fearful), 0 0 20px var(--emotion-fearful) !important;
 }
 
 /* When markers come close, intensify the glow */
@@ -176,6 +155,7 @@
   padding: 5px 10px;
   border-radius: 4px;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .delete-button:hover {

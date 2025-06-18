@@ -4,6 +4,50 @@ import { format } from 'date-fns';
 import L from 'leaflet';
 import './Candle.css';
 
+// Map sub-emotions to their parent emotions
+const emotionMapping = {
+  // Happy sub-emotions
+  'amused': 'happy',
+  'delighted': 'happy',
+  'jovial': 'happy',
+  'blissful': 'happy',
+  // Sad sub-emotions
+  'depressed': 'sad',
+  'sorrow': 'sad',
+  'grief': 'sad',
+  'lonely': 'sad',
+  // Angry sub-emotions
+  'frustrated': 'angry',
+  'annoyed': 'angry',
+  'irritated': 'angry',
+  'enraged': 'angry',
+  // Surprised sub-emotions
+  'amazed': 'surprised',
+  'astonished': 'surprised',
+  'shocked': 'surprised',
+  'confused': 'surprised',
+  // Disgusted sub-emotions
+  'revolted': 'disgusted',
+  'contempt': 'disgusted',
+  'aversion': 'disgusted',
+  'repulsed': 'disgusted',
+  // Fearful sub-emotions
+  'anxious': 'fearful',
+  'scared': 'fearful',
+  'terrified': 'fearful',
+  'nervous': 'fearful',
+  // Tired sub-emotions
+  'exhausted': 'tired',
+  'drained': 'tired',
+  'weary': 'tired',
+  'fatigued': 'tired'
+};
+
+// Get the parent emotion for any emotion (including sub-emotions)
+const getParentEmotion = (emotion) => {
+  return emotionMapping[emotion] || emotion;
+};
+
 // Memoize the random flicker function to avoid recalculation
 const getRandomFlicker = (() => {
   const flickers = new Map();
@@ -30,27 +74,62 @@ const Candle = React.memo(({
   const map = useMap();
   const zoom = map.getZoom();
 
+  // Get the parent emotion for color purposes
+  const parentEmotion = useMemo(() => getParentEmotion(emotion), [emotion]);
+
   // Memoize size calculations
   const { size, sizeClass } = useMemo(() => {
-    const baseSize = 10;
-    const scaleFactor = 1.2;
-    const size = Math.max(10, Math.min(1, baseSize * Math.pow(scaleFactor, zoom)));
+    const baseSize = 8;
+    const scaleFactor = 1.1;
+    const size = Math.max(8, Math.min(16, baseSize * Math.pow(scaleFactor, zoom - 8)));
     return {
       size,
-      sizeClass: size <= 10 ? "small" : size <= 15 ? "medium" : "large"
+      sizeClass: size <= 8 ? "small" : size <= 12 ? "medium" : "large"
     };
   }, [zoom]);
 
   // Memoize the icon creation
   const candleIcon = useMemo(() => {
+    console.log('Creating candle icon:', { emotion, parentEmotion, sizeClass, size, id });
+    
+    // Create a div element to test CSS variable application
+    const testDiv = document.createElement('div');
+    testDiv.className = 'glow-dot';
+    testDiv.setAttribute('data-emotion', parentEmotion);
+    document.body.appendChild(testDiv);
+    
+    // Get computed styles to verify CSS variables
+    const computedStyle = window.getComputedStyle(testDiv);
+    const bgColor = computedStyle.getPropertyValue(`--emotion-${parentEmotion}`).trim();
+    const glowEffect = computedStyle.getPropertyValue(`--glow-${parentEmotion}`).trim();
+    
+    console.log('CSS Variables:', { bgColor, glowEffect });
+    
+    // Remove test div
+    document.body.removeChild(testDiv);
+
+    const iconHtml = `
+      <div class="glow-dot" 
+           data-emotion="${parentEmotion}" 
+           data-size="${sizeClass}" 
+           data-flicker="${getRandomFlicker(id)}"
+           style="
+             background-color: ${bgColor || 'var(--emotion-' + parentEmotion + ')'}; 
+             box-shadow: ${glowEffect || 'var(--glow-' + parentEmotion + ')'};
+             width: ${size}px;
+             height: ${size}px;
+           ">
+      </div>
+    `;
+    
     return L.divIcon({
-      className: '',
-      html: `<div class="glow-dot" data-emotion="${emotion}" data-size="${sizeClass}" data-flicker="${getRandomFlicker(id)}"></div>`,
+      className: 'candle-marker',
+      html: iconHtml,
       iconSize: [size, size],
       iconAnchor: [size / 2, size / 2],
       popupAnchor: [0, -size / 2],
     });
-  }, [emotion, sizeClass, size, id]);
+  }, [emotion, parentEmotion, sizeClass, size, id]);
 
   // Memoize formatted dates
   const { formattedUserTime, formattedCreatorTime } = useMemo(() => {
@@ -82,10 +161,7 @@ const Candle = React.memo(({
         eventHandlers={{
           dragend: (e) => {
             const newPos = e.target.getLatLng();
-            setTempMarker(prev => ({
-              ...prev,
-              position: [newPos.lat, newPos.lng]
-            }));
+            setTempMarker([newPos.lat, newPos.lng]);
           },
           click: handleSave
         }}
@@ -99,6 +175,9 @@ const Candle = React.memo(({
       <Popup>
         <div>
           <p><strong>Emotion:</strong> {emotion}</p>
+          {emotion !== parentEmotion && (
+            <p><small><em>(Category: {parentEmotion})</em></small></p>
+          )}
           <p><small><strong>Viewed at (Your Local Time):</strong> {formattedUserTime}</small></p>
           <p><small><strong>Placed at (Creator's Time):</strong> {formattedCreatorTime}</small></p>
           {isUserCandle && (

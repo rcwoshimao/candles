@@ -10,21 +10,21 @@
   --mauve: #ffc6ffff;      /* Soft pink */
   --baby-powder: #fffffcff; /* Off-white */
 
-  /* Emotion color mappings */
-  --emotion-happy: var(--cream);      /* Bright, cheerful yellow */
-  --emotion-sad: var(--jordy-blue);   /* Soft, melancholic blue */
-  --emotion-disgusted: var(--tea-green); /* Fresh, but can be unsettling */
-  --emotion-angry: var(--melon);      /* Intense red */
-  --emotion-surprised: var(--sunset); /* Bright, attention-grabbing blue */
-  --emotion-tired: var(--periwinkle); /* Soft, muted purple */
-  --emotion-fearful: var(--mauve);    /* Soft pink, can represent anxiety */
+  /* Emotion color mappings - using direct color values for better compatibility */
+  --emotion-happy: rgb(232, 255, 182);      /* Bright, cheerful yellow */
+  --emotion-sad: rgb(160, 196, 255);        /* Soft, melancholic blue */
+  --emotion-disgusted: rgb(202, 255, 191);  /* Fresh, but can be unsettling */
+  --emotion-angry: rgb(255, 173, 173);      /* Intense red */
+  --emotion-surprised: rgb(255, 214, 165);  /* Bright, attention-grabbing orange */
+  --emotion-tired: rgb(189, 178, 255);      /* Soft, muted purple */
+  --emotion-fearful: rgb(255, 198, 255);    /* Soft pink, can represent anxiety */
 
-  /* Glow effects for each emotion */
-  --glow-happy: 0 0 10px var(--cream), 0 0 20px var(--sunset);
-  --glow-sad: 0 0 10px var(--jordy-blue), 0 0 20px var(--periwinkle);
-  --glow-disgusted: 0 0 10px var(--tea-green), 0 0 20px var(--cream);
-  --glow-angry: 0 0 10px var(--melon), 0 0 20px var(--sunset);
-  --glow-surprised: 0 0 10px var(--electric-blue), 0 0 20px var(--jordy-blue);
-  --glow-tired: 0 0 10px var(--periwinkle), 0 0 20px var(--mauve);
-  --glow-fearful: 0 0 10px var(--mauve), 0 0 20px var(--periwinkle);
+  /* Glow effects for each emotion - using direct color values */
+  --glow-happy: 0 0 10px rgb(232, 255, 182), 0 0 20px rgb(232, 255, 182);
+  --glow-sad: 0 0 10px rgb(160, 196, 255), 0 0 20px rgb(160, 196, 255);
+  --glow-disgusted: 0 0 10px rgb(202, 255, 191), 0 0 20px rgb(202, 255, 191);
+  --glow-angry: 0 0 10px rgb(255, 173, 173), 0 0 20px rgb(255, 173, 173);
+  --glow-surprised: 0 0 10px rgb(255, 214, 165), 0 0 20px rgb(255, 214, 165);
+  --glow-tired: 0 0 10px rgb(189, 178, 255), 0 0 20px rgb(189, 178, 255);
+  --glow-fearful: 0 0 10px rgb(255, 198, 255), 0 0 20px rgb(255, 198, 255);
 } 

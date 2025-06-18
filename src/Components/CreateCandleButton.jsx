@@ -34,10 +34,10 @@ const PlusButton = styled.button`
   }
 `;
 
-const CreateCandleButton = ({ onCandleCreate }) => {
+const CreateCandleButton = ({ onClick }) => {
   return (
     <ButtonContainer>
-      <PlusButton onClick={onCandleCreate} aria-label="Create new candle">
+      <PlusButton onClick={onClick} aria-label="Create new candle">
         +
       </PlusButton>
     </ButtonContainer>

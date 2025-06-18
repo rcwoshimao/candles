@@ -7,6 +7,7 @@ import Candle from '../Candle/Candle';
 import CreateCandleButton from '../CreateCandleButton';
 import CandleCreationPopup from '../Candle/CandleCreationPopup';
 import { supabase } from '../../lib/supabase';
+import L from 'leaflet';
 
 const defaultCenter = [38.9072, -77.0369];
 const defaultZoom = 8;
@@ -20,17 +21,74 @@ console.log("Current User ID:", currentUserID);
 
 const USER_CANDLES_KEY = 'userCandles';
 
+// Add emotion data at the top of the file, after imports
+const emotionData = {
+  happy: {
+    color: '#FFD700',
+    subEmotions: ['amused', 'delighted', 'jovial', 'blissful']
+  },
+  sad: {
+    color: '#4682B4',
+    subEmotions: ['depressed', 'sorrow', 'grief', 'lonely']
+  },
+  angry: {
+    color: '#FF4500',
+    subEmotions: ['frustrated', 'annoyed', 'irritated', 'enraged']
+  },
+  surprised: {
+    color: '#FFA500',
+    subEmotions: ['amazed', 'astonished', 'shocked', 'confused']
+  },
+  disgusted: {
+    color: '#32CD32',
+    subEmotions: ['revolted', 'contempt', 'aversion', 'repulsed']
+  },
+  fearful: {
+    color: '#9932CC',
+    subEmotions: ['anxious', 'scared', 'terrified', 'nervous']
+  },
+  tired: {
+    color: '#A9A9A9',
+    subEmotions: ['exhausted', 'drained', 'weary', 'fatigued']
+  }
+};
+
+// Helper function to get a random sub-emotion
+const getRandomSubEmotion = () => {
+  const parentEmotions = Object.keys(emotionData);
+  const randomParent = parentEmotions[Math.floor(Math.random() * parentEmotions.length)];
+  const subEmotions = emotionData[randomParent].subEmotions;
+  return subEmotions[Math.floor(Math.random() * subEmotions.length)];
+};
+
+// Create a separate component for map click handling
+const MapClickHandler = ({ onMapClick, currentStep }) => {
+  useMapEvents({
+    click: (e) => {
+      console.log('Map click event triggered, current step:', currentStep);
+      if (currentStep === 2) {
+        const { lat, lng } = e.latlng;
+        console.log('Setting temp position:', [lat, lng]);
+        onMapClick([lat, lng]);
+      }
+    }
+  });
+  return null;
+};
+
 const MapComponent = () => {
   const mapRef = useRef();
   const [markers, setMarkers] = useState([]);
-  const [tempMarker, setTempMarker] = useState(null);
+  const [tempPosition, setTempPosition] = useState(null);
   const [lastAction, setLastAction] = useState('');
-  const [creationStep, setCreationStep] = useState(0); // 0: not creating, 1: choose emotion, 2: place candle, 3: confirm
   const [selectedEmotion, setSelectedEmotion] = useState(null);
   const [userCandles, setUserCandles] = useState(() => {
     const saved = localStorage.getItem(USER_CANDLES_KEY);
     return saved ? JSON.parse(saved) : [];
   });
+  const [map, setMap] = useState(null);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
 
   // Save user's candles to localStorage whenever they change
   useEffect(() => {
@@ -65,75 +123,64 @@ const MapComponent = () => {
     fetchMarkers();
   }, []);
 
-  // Add MapClickHandler component inside MapComponent
-  const MapClickHandler = () => {
-    useMapEvents({
-      click(e) {
-        if (creationStep === 2) {
-          const creatorTimestamp = new Date().toISOString();
-          const userTimestamp = new Date();
+  // Add debug logging for markers
+  useEffect(() => {
+    console.log('Markers updated:', markers.map(m => ({
+      id: m.id,
+      emotion: m.emotion,
+      position: m.position,
+      isUserCandle: m.isUserCandle
+    })));
+  }, [markers]);
 
-          const newTempMarker = {
-            position: [e.latlng.lat, e.latlng.lng],
-            emotion: selectedEmotion,
-            timestamp: creatorTimestamp,
-            userTimestamp: userTimestamp,
-            userID: currentUserID,
-          };
-
-          setTempMarker(newTempMarker);
-          // Don't change step here - stay in step 2
-          setLastAction(`Candle placed at ${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`);
-        }
-      },
-    });
-    return null;
+  const handleMapClick = (position) => {
+    console.log('handleMapClick called with position:', position);
+    if (currentStep === 2 && selectedEmotion) {
+      setTempPosition(position);
+      setLastAction(`Candle placed at ${position[0].toFixed(4)}, ${position[1].toFixed(4)}`);
+    }
   };
 
-  const handleCandleCreate = () => {
-    setCreationStep(1);
-    setLastAction('Choose an emotion for your candle');
+  const handleCreateCandle = () => {
+    console.log('Create candle button clicked, setting isPopupOpen to true');
+    setIsPopupOpen(true);
+    setCurrentStep(1);
+    setSelectedEmotion(null);
+    setTempPosition(null);
   };
 
   const handleEmotionSelect = (emotion) => {
+    console.log('Emotion selected:', emotion);
     setSelectedEmotion(emotion);
   };
 
   const handlePlaceCandle = () => {
+    console.log('Place candle clicked, selected emotion:', selectedEmotion);
     if (!selectedEmotion) {
-      setLastAction('Please select an emotion first');
+      console.log('No emotion selected, cannot proceed');
       return;
     }
-    setCreationStep(2);
-    setLastAction('Click anywhere on the map to place your candle. You can drag it to adjust the position.');
+    console.log('Moving to step 2, resetting temp position');
+    setCurrentStep(2);
+    setTempPosition(null);
   };
 
+  const handleConfirmPlacement = async () => {
+    console.log('Confirm placement clicked'); // Debug log
+    if (!tempPosition || !selectedEmotion) return;
 
-  const handleCancel = () => {
-    setCreationStep(0);
-    setSelectedEmotion(null);
-    setTempMarker(null);
-    setLastAction('Candle creation cancelled');
-  };
+    const newCandle = {
+      position: tempPosition,
+      emotion: selectedEmotion,
+      timestamp: new Date().toISOString(),
+      user_timestamp: new Date().toISOString(),
+      user_id: currentUserID,
+    };
 
-  const handleSave = async () => {
-    if (!tempMarker?.emotion) {
-      alert("Please select an emotion.");
-      return;
-    }
-  
     try {
       const { data, error } = await supabase
         .from('markers')
-        .insert([
-          {
-            position: tempMarker.position,
-            emotion: tempMarker.emotion,
-            timestamp: tempMarker.timestamp,
-            user_timestamp: tempMarker.userTimestamp.toISOString(),
-            user_id: tempMarker.userID,
-          }
-        ])
+        .insert([newCandle])
         .select()
         .single();
 
@@ -146,15 +193,27 @@ const MapComponent = () => {
           isUserCandle: true
         };
         setMarkers(prev => [...prev, newMarker]);
-        setTempMarker(null);
-        setSelectedEmotion(null);
-        setCreationStep(0);
-        setLastAction(`Candle saved at ${tempMarker.position[0].toFixed(4)}, ${tempMarker.position[1].toFixed(4)}`);
+        setUserCandles(prev => [...prev, data.id]);
+        setLastAction('Candle placed successfully');
       }
     } catch (error) {
-      console.error('Error saving marker:', error);
-      setLastAction('Error saving marker');
+      console.error('Error saving candle:', error);
+      setLastAction('Error saving candle');
     }
+
+    // Clean up
+    setTempPosition(null);
+    setSelectedEmotion(null);
+    setIsPopupOpen(false);
+    setCurrentStep(1);
+  };
+
+  const handleClosePopup = () => {
+    console.log('Close popup clicked'); // Debug log
+    setTempPosition(null);
+    setSelectedEmotion(null);
+    setIsPopupOpen(false);
+    setCurrentStep(1);
   };
 
   const handleDelete = async (idToDelete) => {
@@ -187,7 +246,7 @@ const MapComponent = () => {
     [-85, -180], // Southwest
     [85, 180]    // Northeast
   ];
-  
+
   return (
     <div className="map-component-wrapper">
       <div className="marker-actions-panel">
@@ -220,11 +279,13 @@ const MapComponent = () => {
                 38.9072 + randomOffset(),
                 -77.0369 + randomOffset()
               ],
-              emotion: ['happy', 'sad', 'disgusted', 'angry', 'surprised', 'tired', 'fearful'][Math.floor(Math.random() * 7)],
+              emotion: getRandomSubEmotion(),
               timestamp: new Date().toISOString(),
               user_timestamp: new Date().toISOString(),
               user_id: currentUserID,
             };
+
+            console.log('Adding random marker:', sampleMarker);
 
             const { data, error } = await supabase
               .from('markers')
@@ -232,7 +293,11 @@ const MapComponent = () => {
               .select()
               .single();
 
-            if (error) throw error;
+            if (error) {
+              console.error('Error adding random marker:', error);
+              setLastAction('Error adding random marker');
+              return;
+            }
 
             if (data) {
               const newMarker = {
@@ -240,12 +305,13 @@ const MapComponent = () => {
                 userTimestamp: new Date(data.user_timestamp),
                 isUserCandle: true
               };
+              console.log('Random marker added successfully:', newMarker);
               setMarkers(prev => [...prev, newMarker]);
               setUserCandles(prev => [...prev, data.id]);
               setLastAction('Random sample marker added');
             }
           } catch (error) {
-            console.error('Error adding random marker:', error);
+            console.error('Error in random marker button:', error);
             setLastAction('Error adding random marker');
           }
         }}>
@@ -256,7 +322,10 @@ const MapComponent = () => {
         <div>User ID: {currentUserID}</div>
         <div>Markers: {markers.length}</div>
         <div>Last Action: {lastAction || 'No action yet'}</div>
-
+        <div>Popup Open: {isPopupOpen ? 'Yes' : 'No'}</div>
+        <div>Current Step: {currentStep}</div>
+        <div>Selected Emotion: {selectedEmotion || 'None'}</div>
+        <div>Temp Position: {tempPosition ? `${tempPosition[0].toFixed(4)}, ${tempPosition[1].toFixed(4)}` : 'None'}</div>
       </div>
 
       <Sidebar markers={markers}/>
@@ -268,7 +337,8 @@ const MapComponent = () => {
         maxZoom={18}
         maxBounds={worldBounds}
         maxBoundsViscosity={1.0}
-        className={`MapContainer map-container ${creationStep === 2 ? 'placing-candle' : ''}`}
+        className={`MapContainer map-container ${currentStep === 2 ? 'placing-candle' : ''}`}
+        whenCreated={setMap}
       >
         <TileLayer
           className='tile-layer'
@@ -276,10 +346,22 @@ const MapComponent = () => {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
 
-        <MapClickHandler />
+        {/* Add the MapClickHandler component */}
+        <MapClickHandler 
+          onMapClick={handleMapClick}
+          currentStep={currentStep}
+        />
 
-        {markers.map(marker => (
-          marker && (
+        {/* Render permanent markers with debug logging */}
+        {markers.map(marker => {
+          console.log('Rendering marker:', {
+            id: marker.id,
+            emotion: marker.emotion,
+            position: marker.position,
+            isUserCandle: marker.isUserCandle
+          });
+          
+          return marker && (
             <Candle
               key={marker.id}
               id={marker.id}
@@ -290,37 +372,44 @@ const MapComponent = () => {
               handleDelete={handleDelete}
               isUserCandle={marker.isUserCandle}
             />
-          )
-        ))}
+          );
+        })}
 
-        {tempMarker && (
+        {/* Debug log for temporary candle rendering */}
+        {console.log('Checking temp candle render conditions:', {
+          currentStep,
+          hasTempPosition: !!tempPosition,
+          selectedEmotion,
+          shouldRender: currentStep === 2 && !!tempPosition && !!selectedEmotion
+        })}
+
+        {/* Render temporary candle */}
+        {currentStep === 2 && tempPosition && selectedEmotion && (
           <Candle
             key="temp-marker"
             id="temp-marker"
-            position={tempMarker.position}
-            emotion={tempMarker.emotion}
-            timestamp={tempMarker.timestamp}
-            userTimestamp={tempMarker.userTimestamp}
+            position={tempPosition}
+            emotion={selectedEmotion}
+            timestamp={new Date().toISOString()}
+            userTimestamp={new Date()}
             isTemp={true}
-            setTempMarker={setTempMarker}
-            handleSave={handleSave}
+            setTempMarker={setTempPosition}
+            handleSave={handleConfirmPlacement}
           />
         )}
 
-        <CreateCandleButton onCandleCreate={handleCandleCreate} />
+        <CreateCandleButton onClick={handleCreateCandle} />
       </MapContainer>
 
-      {creationStep > 0 && (
-        <CandleCreationPopup
-          step={creationStep}
-          selectedEmotion={selectedEmotion}
-          onEmotionSelect={handleEmotionSelect}
-          onConfirm={handleSave}
-          onCancel={handleCancel}
-          onPlaceCandle={handlePlaceCandle}
-          tempMarker={tempMarker}
-        />
-      )}
+      <CandleCreationPopup
+        isOpen={isPopupOpen}
+        onClose={handleClosePopup}
+        selectedEmotion={selectedEmotion}
+        onEmotionSelect={handleEmotionSelect}
+        onPlaceCandle={handlePlaceCandle}
+        onConfirmPlacement={handleConfirmPlacement}
+        currentStep={currentStep}
+      />
     </div>
   );
 };
