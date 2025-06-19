@@ -1,6 +1,7 @@
 import React from 'react';
 import BaseChart from '../Common/BaseChart';
 import './EmotionDistributionChart.css';
+import emotionParentMap from './emotionParentMap';
 
 const EmotionDistributionChart = ({ data }) => {
   // This is a placeholder for the actual chart implementation
@@ -31,7 +32,7 @@ const EmotionDistributionChart = ({ data }) => {
             <div className="emotion-bar-container">
               <div 
                 className="emotion-bar-fill"
-                data-emotion={emotion}
+                data-emotion={emotionParentMap[emotion] || emotion}
                 style={{ width: `${(count / Math.max(...Object.values(emotions))) * 100}%` }}
               />
             </div>

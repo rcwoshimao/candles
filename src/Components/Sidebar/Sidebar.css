@@ -5,6 +5,14 @@
   bottom: 0;
   width: 300px;
   z-index: 1000;
+  transition: width 0.3s cubic-bezier(0.4,0,0.2,1);
+  overflow: visible;
+}
+
+.sidebar-nav.closed {
+  width: 0 !important;
+  min-width: 0 !important;
+  pointer-events: none;
 }
 
 .sidebar-background {
@@ -52,12 +60,8 @@
   outline: none;
   border: none;
   cursor: pointer;
-  position: absolute;
-  top: 18px;
-  right: 15px;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
+  width: 100%;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -197,4 +201,27 @@
 .sidebar-text-placeholder[data-color-index="2"] { border: 2px solid #9C1AFF; }
 .sidebar-text-placeholder[data-color-index="3"] { border: 2px solid #7700FF; }
 .sidebar-text-placeholder[data-color-index="4"] { border: 2px solid #4400FF; }
+
+/* Make the menu button always visible and clickable */
+.sidebar-nav .sidebar-toggle-button {
+  position: fixed;
+  right:30px;
+  top: 30px;
+  z-index: 1100;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.7);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.sidebar-nav.closed .sidebar-toggle-button {
+  pointer-events: auto;
+}
   

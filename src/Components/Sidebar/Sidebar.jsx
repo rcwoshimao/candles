@@ -111,13 +111,13 @@ export const Sidebar = ({markers}) => {
   return (
     <>
       <motion.nav
-        className="sidebar-nav"
+        className={`sidebar-nav${!isOpen ? ' closed' : ''}`}
         initial={false}
         animate={isOpen ? "open" : "closed"}
         custom={height}
         ref={containerRef}
         onAnimationComplete={handleAnimationComplete}
-        style={{ width: sidebarWidth }}
+        style={{ width: isOpen ? sidebarWidth : 0 }}
       >
         <motion.div
           className="sidebar-background"
@@ -141,7 +141,10 @@ export const Sidebar = ({markers}) => {
           animate={isOpen ? "open" : "closed"}
           onMouseDown={handleMouseDown}
         />
-        <MenuToggle toggle={() => toggleOpen()} />
+        {/* Always render the menu toggle button, absolutely positioned */}
+        <div className="sidebar-toggle-button">
+          <MenuToggle toggle={() => toggleOpen()} />
+        </div>
       </motion.nav>
     </>
   );

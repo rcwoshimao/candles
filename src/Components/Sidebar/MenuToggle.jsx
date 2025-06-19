@@ -13,7 +13,7 @@ const Path = props => (
 );
 
 export const MenuToggle = ({ toggle }) => (
-  <button className='sidebar-button' onClick={toggle}>
+  <button className='sidebar-button' onClick={toggle} style={{ background: 'none', borderRadius: 0, width: '100%', height: '100%', padding: 0 }}>
     <svg width="23" height="23" viewBox="0 0 23 23">
       <Path
         variants={{
