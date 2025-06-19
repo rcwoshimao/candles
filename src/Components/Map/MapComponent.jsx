@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import './MapComponent.css'; 
 import Sidebar from '../Sidebar/Sidebar';
@@ -76,6 +76,31 @@ const MapClickHandler = ({ onMapClick, currentStep }) => {
   return null;
 };
 
+// Create a separate component for zoom tracking
+const ZoomTracker = ({ onZoomChange }) => {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (map) {
+      const handleZoom = () => {
+        onZoomChange(map.getZoom());
+      };
+      
+      // Set initial zoom
+      onZoomChange(map.getZoom());
+      
+      // Add zoom event listener
+      map.on('zoom', handleZoom);
+      
+      return () => {
+        map.off('zoom', handleZoom);
+      };
+    }
+  }, [map, onZoomChange]);
+  
+  return null;
+};
+
 const MapComponent = () => {
   const mapRef = useRef();
   const [markers, setMarkers] = useState([]);
@@ -86,7 +111,7 @@ const MapComponent = () => {
     const saved = localStorage.getItem(USER_CANDLES_KEY);
     return saved ? JSON.parse(saved) : [];
   });
-  const [map, setMap] = useState(null);
+  const [zoomLevel, setZoomLevel] = useState(defaultZoom);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -273,7 +298,7 @@ const MapComponent = () => {
 
         <button onClick={async () => {
           try {
-            const randomOffset = (scale = 5) => (Math.random() - 0.5) * scale;
+            const randomOffset = (scale = 20) => (Math.random() - 0.5) * scale;
             const sampleMarker = {
               position: [
                 38.9072 + randomOffset(),
@@ -326,6 +351,13 @@ const MapComponent = () => {
         <div>Current Step: {currentStep}</div>
         <div>Selected Emotion: {selectedEmotion || 'None'}</div>
         <div>Temp Position: {tempPosition ? `${tempPosition[0].toFixed(4)}, ${tempPosition[1].toFixed(4)}` : 'None'}</div>
+        <div>Zoom Level: {zoomLevel}</div>
+        <div>Candle Size: {(() => {
+          const baseSize = 12;
+          const scaleFactor = 1.1;
+          const size = Math.max(12, Math.min(20, baseSize * Math.pow(scaleFactor, zoomLevel - 8)));
+          return `${size}px (${size <= 14 ? 'small' : size <= 17 ? 'medium' : 'large'})`;
+        })()}</div>
       </div>
 
       <Sidebar markers={markers}/>
@@ -338,13 +370,15 @@ const MapComponent = () => {
         maxBounds={worldBounds}
         maxBoundsViscosity={1.0}
         className={`MapContainer map-container ${currentStep === 2 ? 'placing-candle' : ''}`}
-        whenCreated={setMap}
       >
         <TileLayer
           className='tile-layer'
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
+
+        {/* Add zoom tracking */}
+        <ZoomTracker onZoomChange={setZoomLevel} />
 
         {/* Add the MapClickHandler component */}
         <MapClickHandler 

@@ -84,56 +84,70 @@
   }
 }
 
-/* Dynamic size classes for different zoom levels */
+/* Dynamic size classes for different zoom levels - smaller sizes for higher zoom */
 .glow-dot[data-size="small"] { 
-  width: 8px !important; 
-  height: 8px !important; 
-}
-
-.glow-dot[data-size="medium"] { 
   width: 12px !important; 
   height: 12px !important; 
 }
 
-.glow-dot[data-size="large"] { 
+.glow-dot[data-size="medium"] { 
   width: 16px !important; 
   height: 16px !important; 
 }
 
-/* Emotion-specific styles for glow-dot - make these more prominent */
+.glow-dot[data-size="large"] { 
+  width: 20px !important; 
+  height: 20px !important; 
+}
+
+/* Emotion-specific styles for glow-dot - enhanced with cores, borders, and shapes */
 .glow-dot[data-emotion="happy"] {
-  background-color: var(--emotion-happy) !important;
-  box-shadow: 0 0 10px var(--emotion-happy), 0 0 20px var(--emotion-happy) !important;
+  background: radial-gradient(circle, var(--core-happy) 30%, var(--emotion-happy) 70%);
+  border: 2px solid var(--border-happy);
+  box-shadow: var(--glow-happy), inset 0 0 5px var(--core-happy);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
 }
 
 .glow-dot[data-emotion="sad"] {
-  background-color: var(--emotion-sad) !important;
-  box-shadow: 0 0 10px var(--emotion-sad), 0 0 20px var(--emotion-sad) !important;
+  background: radial-gradient(circle, var(--core-sad) 30%, var(--emotion-sad) 70%);
+  border: 2px solid var(--border-sad);
+  box-shadow: var(--glow-sad), inset 0 0 5px var(--core-sad);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
 }
 
 .glow-dot[data-emotion="disgusted"] {
-  background-color: var(--emotion-disgusted) !important;
-  box-shadow: 0 0 10px var(--emotion-disgusted), 0 0 20px var(--emotion-disgusted) !important;
+  background: radial-gradient(circle, var(--core-disgusted) 30%, var(--emotion-disgusted) 70%);
+  border: 2px solid var(--border-disgusted);
+  box-shadow: var(--glow-disgusted), inset 0 0 5px var(--core-disgusted);
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
 }
 
 .glow-dot[data-emotion="angry"] {
-  background-color: var(--emotion-angry) !important;
-  box-shadow: 0 0 10px var(--emotion-angry), 0 0 20px var(--emotion-angry) !important;
+  background: radial-gradient(circle, var(--core-angry) 30%, var(--emotion-angry) 70%);
+  border: 2px solid var(--border-angry);
+  box-shadow: var(--glow-angry), inset 0 0 5px var(--core-angry);
+  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
 }
 
 .glow-dot[data-emotion="surprised"] {
-  background-color: var(--emotion-surprised) !important;
-  box-shadow: 0 0 10px var(--emotion-surprised), 0 0 20px var(--emotion-surprised) !important;
+  background: radial-gradient(circle, var(--core-surprised) 30%, var(--emotion-surprised) 70%);
+  border: 2px solid var(--border-surprised);
+  box-shadow: var(--glow-surprised), inset 0 0 5px var(--core-surprised);
+  clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);
 }
 
 .glow-dot[data-emotion="tired"] {
-  background-color: var(--emotion-tired) !important;
-  box-shadow: 0 0 10px var(--emotion-tired), 0 0 20px var(--emotion-tired) !important;
+  background: radial-gradient(circle, var(--core-tired) 30%, var(--emotion-tired) 70%);
+  border: 2px solid var(--border-tired);
+  box-shadow: var(--glow-tired), inset 0 0 5px var(--core-tired);
+  clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%);
 }
 
 .glow-dot[data-emotion="fearful"] {
-  background-color: var(--emotion-fearful) !important;
-  box-shadow: 0 0 10px var(--emotion-fearful), 0 0 20px var(--emotion-fearful) !important;
+  background: radial-gradient(circle, var(--core-fearful) 30%, var(--emotion-fearful) 70%);
+  border: 2px solid var(--border-fearful);
+  box-shadow: var(--glow-fearful), inset 0 0 5px var(--core-fearful);
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
 }
 
 /* When markers come close, intensify the glow */

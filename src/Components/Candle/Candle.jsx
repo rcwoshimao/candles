@@ -79,12 +79,12 @@ const Candle = React.memo(({
 
   // Memoize size calculations
   const { size, sizeClass } = useMemo(() => {
-    const baseSize = 8;
-    const scaleFactor = 1.1;
-    const size = Math.max(8, Math.min(16, baseSize * Math.pow(scaleFactor, zoom - 8)));
+    const baseSize = 8; // Moderate base size
+    const scaleFactor = 1.2; 
+    const size = Math.max(8, Math.min(20, baseSize * Math.pow(scaleFactor, zoom - 8))); // Normal scaling
     return {
       size,
-      sizeClass: size <= 8 ? "small" : size <= 12 ? "medium" : "large"
+      sizeClass: size <= 14 ? "small" : size <= 17 ? "medium" : "large" // Adjusted thresholds
     };
   }, [zoom]);
 
