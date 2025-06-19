@@ -3,9 +3,8 @@ import { useRef, useState, useEffect } from "react";
 import { motion, useCycle } from "framer-motion";
 import { useDimensions } from "./use-dimensions";
 import { MenuToggle } from "./MenuToggle";
-import { Navigation } from "./Navigation";
-import './Sidebar.css';
 import ChartContainer from "../Charts/ChartContainer/ChartContainer";
+import './Sidebar.css';
 
 const sidebar = {
   open: (height = 1000) => ({
@@ -47,7 +46,7 @@ const DEFAULT_SIDEBAR_WIDTH = 300;
 const MIN_WIDTH = 200;
 const MAX_WIDTH = 600;
 
-export const Sidebar = ({markers}) => {
+export const Sidebar = ({ markers }) => {
   const [isOpen, toggleOpen] = useCycle(false, true);
   const [isFullyOpen, setIsFullyOpen] = useState(false);
   const containerRef = useRef(null);
@@ -70,11 +69,7 @@ export const Sidebar = ({markers}) => {
 
   // Handle the animation completion
   const handleAnimationComplete = () => {
-    if (isOpen) {
-      setIsFullyOpen(true);
-    } else {
-      setIsFullyOpen(false);
-    }
+    setIsFullyOpen(isOpen);
   };
 
   const handleMouseDown = (e) => {
@@ -108,6 +103,22 @@ export const Sidebar = ({markers}) => {
     };
   }, [isResizing]);
 
+  // Process markers data for visualization
+  const processedMarkers = React.useMemo(() => {
+    if (!markers) return null;
+    
+    const emotions = {};
+    markers.forEach(marker => {
+      const emotion = marker.emotion;
+      emotions[emotion] = (emotions[emotion] || 0) + 1;
+    });
+
+    return {
+      total: markers.length,
+      emotions: emotions
+    };
+  }, [markers]);
+
   return (
     <>
       <motion.nav
@@ -126,13 +137,23 @@ export const Sidebar = ({markers}) => {
           animate={isOpen ? "open" : "closed"}
           custom={height}
         >
-          
-          {/* Start charts  */}
-          <div className="sidebar-charts-container">
-            {isOpen && <ChartContainer markers={markers} />}
+          <div className="sidebar-content">
+            <div className="sidebar-header">
+              <h2>Candle Analytics</h2>
+              <div className="sidebar-stats">
+                <div className="stat-item">
+                  <span className="stat-label">Total Candles:</span>
+                  <span className="stat-value">{processedMarkers?.total || 0}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="sidebar-charts-container">
+              {isFullyOpen && processedMarkers && (
+                <ChartContainer markers={processedMarkers} />
+              )}
+            </div>
           </div>
-          {/* End charts  */}
-
         </motion.div>
         <motion.div 
           className="sidebar-resize-handle"

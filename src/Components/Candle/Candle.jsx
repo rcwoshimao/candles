@@ -90,7 +90,7 @@ const Candle = React.memo(({
 
   // Memoize the icon creation
   const candleIcon = useMemo(() => {
-    console.log('Creating candle icon:', { emotion, parentEmotion, sizeClass, size, id });
+    console.log('Creating candle icon:', { emotion, parentEmotion, sizeClass, size, id, zoom });
     
     // Create a div element to test CSS variable application
     const testDiv = document.createElement('div');
@@ -108,17 +108,23 @@ const Candle = React.memo(({
     // Remove test div
     document.body.removeChild(testDiv);
 
+    // Determine if we should show clip-path based on zoom level
+    const shouldShowClipPath = zoom > 3;
+    const clipPathStyle = shouldShowClipPath ? '' : 'clip-path: none; border-radius: 50%;';
+
     const iconHtml = `
       <span class="glow-dot-wrap" data-emotion="${parentEmotion}">
         <div class="glow-dot" 
              data-emotion="${parentEmotion}" 
              data-size="${sizeClass}" 
              data-flicker="${getRandomFlicker(id)}"
+             data-zoom="${zoom}"
              style="
                background-color: ${bgColor || 'var(--emotion-' + parentEmotion + ')'}; 
                box-shadow: ${glowEffect || 'var(--glow-' + parentEmotion + ')'};
                width: ${size}px;
                height: ${size}px;
+               ${clipPathStyle}
              ">
         </div>
       </span>
@@ -131,7 +137,7 @@ const Candle = React.memo(({
       iconAnchor: [size / 2, size / 2],
       popupAnchor: [0, -size / 2],
     });
-  }, [emotion, parentEmotion, sizeClass, size, id]);
+  }, [emotion, parentEmotion, sizeClass, size, id, zoom]);
 
   // Memoize formatted dates
   const { formattedUserTime, formattedCreatorTime } = useMemo(() => {

@@ -104,25 +104,25 @@
 
 /* Emotion-specific styles for glow-dot - enhanced with cores, borders, and shapes */
 .glow-dot-wrap[data-emotion="happy"] {
-  filter: drop-shadow(0 0 18px var(--emotion-happy));
+  filter: drop-shadow(0 0 8px var(--emotion-happy));
 }
 .glow-dot-wrap[data-emotion="sad"] {
-  filter: drop-shadow(0 0 18px var(--emotion-sad));
+  filter: drop-shadow(0 0 8px var(--emotion-sad));
 }
 .glow-dot-wrap[data-emotion="disgusted"] {
-  filter: drop-shadow(0 0 18px var(--emotion-disgusted));
+  filter: drop-shadow(0 0 8px var(--emotion-disgusted));
 }
 .glow-dot-wrap[data-emotion="angry"] {
-  filter: drop-shadow(0 0 18px var(--emotion-angry));
+  filter: drop-shadow(0 0 8px var(--emotion-angry));
 }
 .glow-dot-wrap[data-emotion="surprised"] {
-  filter: drop-shadow(0 0 18px var(--emotion-surprised));
+  filter: drop-shadow(0 0 8px var(--emotion-surprised));
 }
 .glow-dot-wrap[data-emotion="tired"] {
-  filter: drop-shadow(0 0 18px var(--emotion-tired));
+  filter: drop-shadow(0 0 8px var(--emotion-tired));
 }
 .glow-dot-wrap[data-emotion="fearful"] {
-  filter: drop-shadow(0 0 18px var(--emotion-fearful));
+  filter: drop-shadow(0 0 8px var(--emotion-fearful));
 }
 
 /* Keep the unique shape for each emotion */
@@ -160,6 +160,15 @@
   background: var(--emotion-fearful) !important;
   color: var(--emotion-fearful);
   clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}
+
+/* Override clip-path styles for low zoom levels (zoom <= 3) */
+.glow-dot[data-zoom="0"],
+.glow-dot[data-zoom="1"],
+.glow-dot[data-zoom="2"],
+.glow-dot[data-zoom="3"] {
+  clip-path: none !important;
+  border-radius: 50% !important;
 }
 
 /* When markers come close, intensify the glow */
