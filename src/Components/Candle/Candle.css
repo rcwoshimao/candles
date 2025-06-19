@@ -26,6 +26,8 @@
   transition: all 0.3s ease;
   /* Add pointer-events to make the dot interactive */
   pointer-events: auto;
+  /* Remove box-shadow, keep shape and color */
+  border: 2px solid currentColor;
 }
 
 /* Optimized flicker animations with brightness */
@@ -101,52 +103,62 @@
 }
 
 /* Emotion-specific styles for glow-dot - enhanced with cores, borders, and shapes */
+.glow-dot-wrap[data-emotion="happy"] {
+  filter: drop-shadow(0 0 18px var(--emotion-happy));
+}
+.glow-dot-wrap[data-emotion="sad"] {
+  filter: drop-shadow(0 0 18px var(--emotion-sad));
+}
+.glow-dot-wrap[data-emotion="disgusted"] {
+  filter: drop-shadow(0 0 18px var(--emotion-disgusted));
+}
+.glow-dot-wrap[data-emotion="angry"] {
+  filter: drop-shadow(0 0 18px var(--emotion-angry));
+}
+.glow-dot-wrap[data-emotion="surprised"] {
+  filter: drop-shadow(0 0 18px var(--emotion-surprised));
+}
+.glow-dot-wrap[data-emotion="tired"] {
+  filter: drop-shadow(0 0 18px var(--emotion-tired));
+}
+.glow-dot-wrap[data-emotion="fearful"] {
+  filter: drop-shadow(0 0 18px var(--emotion-fearful));
+}
+
+/* Keep the unique shape for each emotion */
 .glow-dot[data-emotion="happy"] {
-  background: radial-gradient(circle, var(--core-happy) 30%, var(--emotion-happy) 70%);
-  border: 2px solid var(--border-happy);
-  box-shadow: var(--glow-happy), inset 0 0 5px var(--core-happy);
+  background: var(--emotion-happy) !important;
+  color: var(--emotion-happy);
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
 }
-
 .glow-dot[data-emotion="sad"] {
-  background: radial-gradient(circle, var(--core-sad) 30%, var(--emotion-sad) 70%);
-  border: 2px solid var(--border-sad);
-  box-shadow: var(--glow-sad), inset 0 0 5px var(--core-sad);
+  background: var(--emotion-sad) !important;
+  color: var(--emotion-sad);
   clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
 }
-
 .glow-dot[data-emotion="disgusted"] {
-  background: radial-gradient(circle, var(--core-disgusted) 30%, var(--emotion-disgusted) 70%);
-  border: 2px solid var(--border-disgusted);
-  box-shadow: var(--glow-disgusted), inset 0 0 5px var(--core-disgusted);
+  background: var(--emotion-disgusted) !important;
+  color: var(--emotion-disgusted);
   clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
 }
-
 .glow-dot[data-emotion="angry"] {
-  background: radial-gradient(circle, var(--core-angry) 30%, var(--emotion-angry) 70%);
-  border: 2px solid var(--border-angry);
-  box-shadow: var(--glow-angry), inset 0 0 5px var(--core-angry);
+  background: var(--emotion-angry) !important;
+  color: var(--emotion-angry);
   clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
 }
-
 .glow-dot[data-emotion="surprised"] {
-  background: radial-gradient(circle, var(--core-surprised) 30%, var(--emotion-surprised) 70%);
-  border: 2px solid var(--border-surprised);
-  box-shadow: var(--glow-surprised), inset 0 0 5px var(--core-surprised);
+  background: var(--emotion-surprised) !important;
+  color: var(--emotion-surprised);
   clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);
 }
-
 .glow-dot[data-emotion="tired"] {
-  background: radial-gradient(circle, var(--core-tired) 30%, var(--emotion-tired) 70%);
-  border: 2px solid var(--border-tired);
-  box-shadow: var(--glow-tired), inset 0 0 5px var(--core-tired);
+  background: var(--emotion-tired) !important;
+  color: var(--emotion-tired);
   clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%);
 }
-
 .glow-dot[data-emotion="fearful"] {
-  background: radial-gradient(circle, var(--core-fearful) 30%, var(--emotion-fearful) 70%);
-  border: 2px solid var(--border-fearful);
-  box-shadow: var(--glow-fearful), inset 0 0 5px var(--core-fearful);
+  background: var(--emotion-fearful) !important;
+  color: var(--emotion-fearful);
   clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
 }
 

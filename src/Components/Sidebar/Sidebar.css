@@ -205,23 +205,25 @@
 /* Make the menu button always visible and clickable */
 .sidebar-nav .sidebar-toggle-button {
   position: fixed;
-  right:30px;
-  top: 30px;
+  right:25px;
+  top: 25px;
   z-index: 1100;
-  width: 48px;
-  height: 48px;
+  width: 60px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0,0,0,0.7);
+  
   border-radius: 50%;
   cursor: pointer;
   border: none;
   outline: none;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  
 }
 
 .sidebar-nav.closed .sidebar-toggle-button {
   pointer-events: auto;
+  background: rgba(0,0,0,0.3);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
   

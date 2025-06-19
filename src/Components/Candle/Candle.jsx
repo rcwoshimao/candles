@@ -109,17 +109,19 @@ const Candle = React.memo(({
     document.body.removeChild(testDiv);
 
     const iconHtml = `
-      <div class="glow-dot" 
-           data-emotion="${parentEmotion}" 
-           data-size="${sizeClass}" 
-           data-flicker="${getRandomFlicker(id)}"
-           style="
-             background-color: ${bgColor || 'var(--emotion-' + parentEmotion + ')'}; 
-             box-shadow: ${glowEffect || 'var(--glow-' + parentEmotion + ')'};
-             width: ${size}px;
-             height: ${size}px;
-           ">
-      </div>
+      <span class="glow-dot-wrap" data-emotion="${parentEmotion}">
+        <div class="glow-dot" 
+             data-emotion="${parentEmotion}" 
+             data-size="${sizeClass}" 
+             data-flicker="${getRandomFlicker(id)}"
+             style="
+               background-color: ${bgColor || 'var(--emotion-' + parentEmotion + ')'}; 
+               box-shadow: ${glowEffect || 'var(--glow-' + parentEmotion + ')'};
+               width: ${size}px;
+               height: ${size}px;
+             ">
+        </div>
+      </span>
     `;
     
     return L.divIcon({
