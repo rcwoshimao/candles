@@ -17,7 +17,7 @@
   --emotion-angry: rgb(255, 173, 173);      /* Intense red */
   --emotion-surprised: rgb(255, 214, 165);  /* Bright, attention-grabbing orange */
   --emotion-tired: rgb(213, 178, 255);      /* Soft, muted purple */
-  --emotion-fearful: rgb(207, 117, 183);    /* Soft pink, can represent anxiety */
+  --emotion-fearful:rgb(255, 172, 243);   /* Soft pink, can represent anxiety */
 
   /* Distinctive inner core colors - more saturated for better visibility */
   --core-happy: rgb(255, 255, 0);           /* Pure yellow */
@@ -26,7 +26,7 @@
   --core-angry: rgb(255, 136, 120);         /* Bright red */
   --core-surprised: rgb(255, 148, 42);       /* Orange */
   --core-tired: rgb(150, 100, 255);         /* Deep purple */
-  --core-fearful: rgb(255, 100, 255);       /* Magenta */
+  --core-fearful: rgb(255, 172, 243);      /* Magenta */
 
   /* Border colors for each emotion */
   --border-happy: rgb(255, 255, 0);         /* Yellow border */
@@ -35,7 +35,7 @@
   --border-angry: rgb(255, 100, 100);       /* Red border */
   --border-surprised: rgb(255, 165, 0);     /* Orange border */
   --border-tired: rgb(150, 100, 255);       /* Purple border */
-  --border-fearful: rgb(255, 100, 255);     /* Magenta border */
+  --border-fearful: rgb(255, 172, 243);     /* Magenta border */
 
   /* Enhanced glow effects for each emotion - stronger and more distinctive */
   --glow-happy: 0 0 10px rgb(232, 255, 182), 0 0 20px rgb(232, 255, 182), 0 0 30px rgba(255, 255, 0, 0.6);
