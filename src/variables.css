@@ -22,12 +22,12 @@
   --baby-powder-main: #ffffff;   /* pure white */
 
   /* Emotion color mappings - using direct color values for better compatibility */
-  --emotion-happy: var(--sunset-main); /* Bright, cheerful yellow */
+  --emotion-happy: var(--cream-main); /* Bright, cheerful yellow */
   --emotion-sad: var(--jordy-blue-main); /* Soft, melancholic blue */
   --emotion-disgusted: var(--tea-green-main); /* Fresh, but can be unsettling */
   --emotion-angry: var(--melon-main); /* Intense red */
   --emotion-surprised: var(--electric-blue-main); /* Bright, attention-grabbing orange */
-  --emotion-tired: var(--periwinkle-main); /* Soft, muted purple */
+  --emotion-bad: var(--periwinkle-main); /* Soft, muted purple */
   --emotion-fearful: var(--mauve-main); /* Soft pink, can represent anxiety */
 
 

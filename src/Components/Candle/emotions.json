@@ -16,7 +16,7 @@
     "confused": ["perplexed", "disillusioned"],
     "startled": ["dismayed", "shocked"]
   },
-  "tired": {
+  "bad": {
     "tired": ["unfocused", "sleepy"],
     "stressed": ["out of control", "overwhelmed"],
     "busy": ["rushed", "pressured"],

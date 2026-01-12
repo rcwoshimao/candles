@@ -4,36 +4,38 @@ import './EmotionDistributionChart.css';
 import emotionParentMap from './emotionParentMap';
 
 const EmotionDistributionChart = ({ data }) => {
-  // This is a placeholder for the actual chart implementation
-  const emotions = data?.emotions || {
-    joy: 0,
-    sadness: 0,
-    hope: 0,
-    love: 0,
-    peace: 0
-  };
+  // `data` is the `markers` array.
+  const emotions = React.useMemo(() => {
+    const counts = {};
 
-    console.log('Emotion Data:', data?.emotions);
-    console.log('Max value:', Math.max(...Object.values(emotions)));
-    console.log('Width calculations:', Object.entries(emotions).map(([emotion, count]) => ({
-    emotion,
-    count,
-    maxValue: Math.max(...Object.values(emotions)),
-    percentage: (count / Math.max(...Object.values(emotions))) * 100,
-    width: `${(count / Math.max(...Object.values(emotions))) * 100}%`
-    })));
-    
+    for (const marker of data || []) {
+      const leaf = marker?.emotion;
+      if (!leaf) continue;
+      const parent = emotionParentMap[leaf] || leaf;
+      counts[parent] = (counts[parent] || 0) + 1;
+    }
+
+    return counts;
+  }, [data]);
+
+  const maxValue = React.useMemo(() => {
+    const vals = Object.values(emotions);
+    return vals.length ? Math.max(...vals) : 0;
+  }, [emotions]);
+
   return (
     <BaseChart title="Emotion Distribution">
       <div className="emotion-chart">
-        {Object.entries(emotions).map(([emotion, count]) => (
+        {Object.entries(emotions)
+          .sort((a, b) => b[1] - a[1])
+          .map(([emotion, count]) => (
           <div key={emotion} className="emotion-bar">
             <div className="emotion-label">{emotion}</div>
             <div className="emotion-bar-container">
               <div 
                 className="emotion-bar-fill"
                 data-emotion={emotionParentMap[emotion] || emotion}
-                style={{ width: `${(count / Math.max(...Object.values(emotions))) * 100}%` }}
+                style={{ width: maxValue ? `${(count / maxValue) * 100}%` : '0%' }}
               />
             </div>
             <div className="emotion-count">{count}</div>

@@ -149,8 +149,8 @@ export const Sidebar = ({ markers }) => {
             </div>
             
             <div className="sidebar-charts-container">
-              {isFullyOpen && processedMarkers && (
-                <ChartContainer markers={processedMarkers} />
+              {isFullyOpen && markers && (
+                <ChartContainer markers={markers} />
               )}
             </div>
           </div>

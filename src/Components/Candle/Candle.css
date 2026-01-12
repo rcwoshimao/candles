@@ -41,9 +41,9 @@
 }
 
 /* Flicker assignments */
-.glow-dot[data-flicker="1"] { animation: flicker1 2s ease-in-out infinite; }
-.glow-dot[data-flicker="2"] { animation: flicker2 2.3s ease-in-out infinite; }
-.glow-dot[data-flicker="3"] { animation: flicker3 2.6s ease-in-out infinite; }
+.glow-dot[data-flicker="1"] { animation: flicker1 3.5s ease-in-out infinite; }
+.glow-dot[data-flicker="2"] { animation: flicker2 4s ease-in-out infinite; }
+.glow-dot[data-flicker="3"] { animation: flicker3 4.5s ease-in-out infinite; }
 
 /* Reduce animation when user prefers reduced motion */
 @media (prefers-reduced-motion: reduce) {
@@ -102,9 +102,9 @@
   color: var(--emotion-surprised);
   clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);
 }
-.glow-dot[data-emotion="tired"] {
-  background: var(--emotion-tired) !important;
-  color: var(--emotion-tired);
+.glow-dot[data-emotion="bad"] {
+  background: var(--emotion-bad) !important;
+  color: var(--emotion-bad);
   clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%);
 }
 .glow-dot[data-emotion="fearful"] {
