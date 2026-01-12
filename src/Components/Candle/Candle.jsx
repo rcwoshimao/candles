@@ -92,7 +92,7 @@ const Candle = React.memo(({
   const candleIcon = useMemo(() => {
     console.log('Creating candle icon:', { emotion, parentEmotion, sizeClass, size, id, zoom });
     
-    // Create a div element to test CSS variable application
+    // Create a div element to get CSS variable for background color
     const testDiv = document.createElement('div');
     testDiv.className = 'glow-dot';
     testDiv.setAttribute('data-emotion', parentEmotion);
@@ -101,9 +101,8 @@ const Candle = React.memo(({
     // Get computed styles to verify CSS variables
     const computedStyle = window.getComputedStyle(testDiv);
     const bgColor = computedStyle.getPropertyValue(`--emotion-${parentEmotion}`).trim();
-    const glowEffect = computedStyle.getPropertyValue(`--glow-${parentEmotion}`).trim();
     
-    console.log('CSS Variables:', { bgColor, glowEffect });
+    console.log('CSS Variables:', { bgColor });
     
     // Remove test div
     document.body.removeChild(testDiv);
@@ -121,7 +120,6 @@ const Candle = React.memo(({
              data-zoom="${zoom}"
              style="
                background-color: ${bgColor || 'var(--emotion-' + parentEmotion + ')'}; 
-               box-shadow: ${glowEffect || 'var(--glow-' + parentEmotion + ')'};
                width: ${size}px;
                height: ${size}px;
                ${clipPathStyle}

@@ -4,8 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import './MapComponent.css'; 
 import Sidebar from '../Sidebar/Sidebar';
 import Candle from '../Candle/Candle';
-import CreateCandleButton from '../CreateCandleButton';
-import CandleCreationPopup from '../Candle/CandleCreationPopup';
+import CreateCandleControls from '../CreateCandle/CreateCandleControls';
 import { supabase } from '../../lib/supabase';
 import L from 'leaflet';
 
@@ -432,12 +431,12 @@ const MapComponent = () => {
           />
         )}
 
-        <CreateCandleButton onClick={handleCreateCandle} />
       </MapContainer>
 
-      <CandleCreationPopup
-        isOpen={isPopupOpen}
-        onClose={handleClosePopup}
+      <CreateCandleControls
+        isPopupOpen={isPopupOpen}
+        onCreateCandle={handleCreateCandle}
+        onClosePopup={handleClosePopup}
         selectedEmotion={selectedEmotion}
         onEmotionSelect={handleEmotionSelect}
         onPlaceCandle={handlePlaceCandle}

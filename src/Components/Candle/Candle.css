@@ -14,75 +14,44 @@
 
 .glow-dot {
   border-radius: 50%;
-  /* Remove the default background color to use emotion-specific colors */
-  /* Use will-change to hint browser about animations */
-  will-change: transform, opacity, filter;
-  /* Use hardware acceleration */
+  will-change: opacity;
   transform: translateZ(0);
   backface-visibility: hidden;
-  /* Optimize filter performance */
-  -webkit-filter: brightness(1);
-  filter: brightness(1);
-  transition: all 0.3s ease;
-  /* Add pointer-events to make the dot interactive */
   pointer-events: auto;
-  /* Remove box-shadow, keep shape and color */
-  border: 2px solid currentColor;
+  box-shadow: none !important;
+  border: none;
 }
 
-/* Optimized flicker animations with brightness */
+/* Simple on/off flicker animations */
 @keyframes flicker1 {
-  0%, 100% { 
-    transform: scale(0.95) translateZ(0);
-    opacity: 0.8;
-    filter: brightness(0.85);
-  }
-  50% { 
-    transform: scale(1.05) translateZ(0);
-    opacity: 1;
-    filter: brightness(1.15);
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
 }
 
 @keyframes flicker2 {
-  0%, 100% { 
-    transform: scale(0.98) translateZ(0);
-    opacity: 0.85;
-    filter: brightness(0.9);
-  }
-  50% { 
-    transform: scale(1.02) translateZ(0);
-    opacity: 0.95;
-    filter: brightness(1.1);
-  }
+  0%, 100% { opacity: 1; }
+  45% { opacity: 0.25; }
+  55% { opacity: 0.25; }
 }
 
 @keyframes flicker3 {
-  0%, 100% { 
-    transform: scale(0.97) translateZ(0);
-    opacity: 0.82;
-    filter: brightness(0.88);
-  }
-  50% { 
-    transform: scale(1.03) translateZ(0);
-    opacity: 0.9;
-    filter: brightness(1.12);
-  }
+  0%, 100% { opacity: 1; }
+  40% { opacity: 0.25; }
+  60% { opacity: 0.25; }
 }
 
-/* Optimized flicker assignments - longer durations to reduce CPU usage */
+/* Flicker assignments */
 .glow-dot[data-flicker="1"] { animation: flicker1 2s ease-in-out infinite; }
 .glow-dot[data-flicker="2"] { animation: flicker2 2.3s ease-in-out infinite; }
 .glow-dot[data-flicker="3"] { animation: flicker3 2.6s ease-in-out infinite; }
 
-/* Reduce animation complexity when many candles are present */
+/* Reduce animation when user prefers reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .glow-dot[data-flicker="1"],
   .glow-dot[data-flicker="2"],
   .glow-dot[data-flicker="3"] {
     animation: none;
-    opacity: 0.9;
-    filter: brightness(1);
+    opacity: 1;
   }
 }
 
@@ -102,27 +71,9 @@
   height: 20px !important; 
 }
 
-/* Emotion-specific styles for glow-dot - enhanced with cores, borders, and shapes */
-.glow-dot-wrap[data-emotion="happy"] {
-  filter: drop-shadow(0 0 8px var(--emotion-happy));
-}
-.glow-dot-wrap[data-emotion="sad"] {
-  filter: drop-shadow(0 0 8px var(--emotion-sad));
-}
-.glow-dot-wrap[data-emotion="disgusted"] {
-  filter: drop-shadow(0 0 8px var(--emotion-disgusted));
-}
-.glow-dot-wrap[data-emotion="angry"] {
-  filter: drop-shadow(0 0 8px var(--emotion-angry));
-}
-.glow-dot-wrap[data-emotion="surprised"] {
-  filter: drop-shadow(0 0 8px var(--emotion-surprised));
-}
-.glow-dot-wrap[data-emotion="tired"] {
-  filter: drop-shadow(0 0 8px var(--emotion-tired));
-}
-.glow-dot-wrap[data-emotion="fearful"] {
-  filter: drop-shadow(0 0 8px var(--emotion-fearful));
+/* Remove all glow effects from wrapper */
+.glow-dot-wrap {
+  filter: none;
 }
 
 /* Keep the unique shape for each emotion */
@@ -171,11 +122,10 @@
   border-radius: 50% !important;
 }
 
-/* When markers come close, intensify the glow */
+/* When markers come close */
 .candle-marker.merged {
   width: 18px;
   height: 18px;
-  filter: brightness(1.2);
 }
 
 /* Button styles */
