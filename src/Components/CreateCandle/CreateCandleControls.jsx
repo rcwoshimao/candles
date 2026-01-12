@@ -6,6 +6,7 @@ const CreateCandleControls = ({
   isPopupOpen,
   onCreateCandle,
   onClosePopup,
+  onBackFromPlacement,
   selectedEmotion,
   onEmotionSelect,
   onPlaceCandle,
@@ -26,6 +27,7 @@ const CreateCandleControls = ({
         <CreateCandlePopup
           isOpen={isPopupOpen}
           onClose={onClosePopup}
+          onBack={onBackFromPlacement}
           selectedEmotion={selectedEmotion}
           onEmotionSelect={onEmotionSelect}
           onPlaceCandle={onPlaceCandle}

@@ -10,60 +10,25 @@
   --mauve: #ffc6ffff;      /* Soft pink */
   --baby-powder: #fffffcff; /* Off-white */
 
+  /* More saturated / "main" palette (less pastel, more obvious) */
+  --melon-main: #ff5a52;         /* slightly softened red */
+  --sunset-main: #ff9a2e;        /* slightly softened orange */
+  --cream-main: #ffd24d;         /* slightly softened yellow */
+  --tea-green-main: #44de70;     /* slightly softened green */
+  --electric-blue-main: #33e0d7; /* slightly softened cyan */
+  --jordy-blue-main: #6b74ff;    /* slightly softened blue */
+  --periwinkle-main: #9a76ff;    /* slightly softened purple */
+  --mauve-main: #ff77e3;         /* slightly softened pink */
+  --baby-powder-main: #ffffff;   /* pure white */
+
   /* Emotion color mappings - using direct color values for better compatibility */
-  --emotion-happy: rgb(232, 255, 182);      /* Bright, cheerful yellow */
-  --emotion-sad: rgb(160, 196, 255);        /* Soft, melancholic blue */
-  --emotion-disgusted: rgb(227, 255, 191);  /* Fresh, but can be unsettling */
-  --emotion-angry: rgb(255, 173, 173);      /* Intense red */
-  --emotion-surprised: rgb(255, 214, 165);  /* Bright, attention-grabbing orange */
-  --emotion-tired: rgb(213, 178, 255);      /* Soft, muted purple */
-  --emotion-fearful:rgb(255, 172, 243);   /* Soft pink, can represent anxiety */
+  --emotion-happy: var(--sunset-main); /* Bright, cheerful yellow */
+  --emotion-sad: var(--jordy-blue-main); /* Soft, melancholic blue */
+  --emotion-disgusted: var(--tea-green-main); /* Fresh, but can be unsettling */
+  --emotion-angry: var(--melon-main); /* Intense red */
+  --emotion-surprised: var(--electric-blue-main); /* Bright, attention-grabbing orange */
+  --emotion-tired: var(--periwinkle-main); /* Soft, muted purple */
+  --emotion-fearful: var(--mauve-main); /* Soft pink, can represent anxiety */
 
-  /* Distinctive inner core colors - more saturated for better visibility */
-  --core-happy: rgb(255, 255, 0);           /* Pure yellow */
-  --core-sad: rgb(128, 119, 255);           /* Deep blue */
-  --core-disgusted: rgb(184, 255, 32);         /* Pure green */
-  --core-angry: rgb(255, 136, 120);         /* Bright red */
-  --core-surprised: rgb(255, 148, 42);       /* Orange */
-  --core-tired: rgb(150, 100, 255);         /* Deep purple */
-  --core-fearful: rgb(255, 172, 243);      /* Magenta */
 
-  /* Border colors for each emotion */
-  --border-happy: rgb(255, 255, 0);         /* Yellow border */
-  --border-sad: rgb(100, 150, 255);         /* Blue border */
-  --border-disgusted: rgb(0, 255, 0);       /* Green border */
-  --border-angry: rgb(255, 100, 100);       /* Red border */
-  --border-surprised: rgb(255, 165, 0);     /* Orange border */
-  --border-tired: rgb(150, 100, 255);       /* Purple border */
-  --border-fearful: rgb(255, 172, 243);     /* Magenta border */
-
-  /* Enhanced glow effects for each emotion - stronger and more distinctive */
-  --glow-happy: 0 0 10px rgb(232, 255, 182), 0 0 20px rgb(232, 255, 182), 0 0 30px rgba(255, 255, 0, 0.6);
-  --glow-sad: 0 0 10px rgb(160, 196, 255), 0 0 20px rgb(160, 196, 255), 0 0 30px rgba(100, 150, 255, 0.6);
-  --glow-disgusted: 0 0 10px rgb(202, 255, 191), 0 0 20px rgb(202, 255, 191), 0 0 30px rgba(0, 255, 0, 0.6);
-  --glow-angry: 0 0 10px rgb(255, 173, 173), 0 0 20px rgb(255, 173, 173), 0 0 30px rgba(255, 100, 100, 0.6);
-  --glow-surprised: 0 0 10px rgb(255, 214, 165), 0 0 20px rgb(255, 214, 165), 0 0 30px rgba(255, 165, 0, 0.6);
-  --glow-tired: 0 0 10px rgb(189, 178, 255), 0 0 20px rgb(189, 178, 255), 0 0 30px rgba(150, 100, 255, 0.6);
-  --glow-fearful: 0 0 10px rgb(255, 198, 255), 0 0 20px rgb(255, 198, 255), 0 0 30px rgba(255, 100, 255, 0.6);
 } 
-
-/*
-Pastel colors
---emotion-happy: rgb(232, 255, 182); // Bright, cheerful yellow (pastel)
---emotion-sad: rgb(160, 196, 255);   // Soft, melancholic blue (pastel)
---emotion-disgusted: rgb(202, 255, 191);  // Fresh, but can be unsettling (pastel green)
---emotion-angry: rgb(255, 173, 173);      // Intense red (pastel)
---emotion-surprised: rgb(255, 214, 165);  // Bright, attention-grabbing orange (pastel)
---emotion-tired: rgb(189, 178, 255);      // Soft, muted purple (pastel)
---emotion-fearful: rgb(255, 198, 255);    // Soft pink, can represent anxiety (pastel)
-
-
-Old glow effects
---glow-happy: 0 0 10px rgb(232, 255, 182), 0 0 20px rgb(232, 255, 182);
---glow-sad: 0 0 10px rgb(160, 196, 255), 0 0 20px rgb(160, 196, 255);
---glow-disgusted: 0 0 10px rgb(202, 255, 191), 0 0 20px rgb(202, 255, 191);
---glow-angry: 0 0 10px rgb(255, 173, 173), 0 0 20px rgb(255, 173, 173);
---glow-surprised: 0 0 10px rgb(255, 214, 165), 0 0 20px rgb(255, 214, 165);
---glow-tired: 0 0 10px rgb(189, 178, 255), 0 0 20px rgb(189, 178, 255);
---glow-fearful: 0 0 10px rgb(255, 198, 255), 0 0 20px rgb(255, 198, 255);
-*/

@@ -3,49 +3,11 @@ import { Marker, Popup, useMap } from 'react-leaflet';
 import { format } from 'date-fns';
 import L from 'leaflet';
 import './Candle.css';
-
-// Map sub-emotions to their parent emotions
-const emotionMapping = {
-  // Happy sub-emotions
-  'amused': 'happy',
-  'delighted': 'happy',
-  'jovial': 'happy',
-  'blissful': 'happy',
-  // Sad sub-emotions
-  'depressed': 'sad',
-  'sorrow': 'sad',
-  'grief': 'sad',
-  'lonely': 'sad',
-  // Angry sub-emotions
-  'frustrated': 'angry',
-  'annoyed': 'angry',
-  'irritated': 'angry',
-  'enraged': 'angry',
-  // Surprised sub-emotions
-  'amazed': 'surprised',
-  'astonished': 'surprised',
-  'shocked': 'surprised',
-  'confused': 'surprised',
-  // Disgusted sub-emotions
-  'revolted': 'disgusted',
-  'contempt': 'disgusted',
-  'aversion': 'disgusted',
-  'repulsed': 'disgusted',
-  // Fearful sub-emotions
-  'anxious': 'fearful',
-  'scared': 'fearful',
-  'terrified': 'fearful',
-  'nervous': 'fearful',
-  // Tired sub-emotions
-  'exhausted': 'tired',
-  'drained': 'tired',
-  'weary': 'tired',
-  'fatigued': 'tired'
-};
+import emotionParentMap from '../../lib/emotionParentMap';
 
 // Get the parent emotion for any emotion (including sub-emotions)
 const getParentEmotion = (emotion) => {
-  return emotionMapping[emotion] || emotion;
+  return emotionParentMap[emotion] || emotion;
 };
 
 // Memoize the random flicker function to avoid recalculation

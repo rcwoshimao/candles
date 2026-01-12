@@ -5,6 +5,7 @@ import './MapComponent.css';
 import Sidebar from '../Sidebar/Sidebar';
 import Candle from '../Candle/Candle';
 import CreateCandleControls from '../CreateCandle/CreateCandleControls';
+import emotions from '../Candle/emotions.json';
 import { supabase } from '../../lib/supabase';
 import L from 'leaflet';
 
@@ -20,44 +21,12 @@ console.log("Current User ID:", currentUserID);
 
 const USER_CANDLES_KEY = 'userCandles';
 
-// Add emotion data at the top of the file, after imports
-const emotionData = {
-  happy: {
-    color: '#FFD700',
-    subEmotions: ['amused', 'delighted', 'jovial', 'blissful']
-  },
-  sad: {
-    color: '#4682B4',
-    subEmotions: ['depressed', 'sorrow', 'grief', 'lonely']
-  },
-  angry: {
-    color: '#FF4500',
-    subEmotions: ['frustrated', 'annoyed', 'irritated', 'enraged']
-  },
-  surprised: {
-    color: '#FFA500',
-    subEmotions: ['amazed', 'astonished', 'shocked', 'confused']
-  },
-  disgusted: {
-    color: '#32CD32',
-    subEmotions: ['revolted', 'contempt', 'aversion', 'repulsed']
-  },
-  fearful: {
-    color: '#9932CC',
-    subEmotions: ['anxious', 'scared', 'terrified', 'nervous']
-  },
-  tired: {
-    color: '#A9A9A9',
-    subEmotions: ['exhausted', 'drained', 'weary', 'fatigued']
-  }
-};
+const ALL_EMOTION_LEAVES = Object.values(emotions).flatMap((midLevels) =>
+  Object.values(midLevels).flat()
+);
 
-// Helper function to get a random sub-emotion
-const getRandomSubEmotion = () => {
-  const parentEmotions = Object.keys(emotionData);
-  const randomParent = parentEmotions[Math.floor(Math.random() * parentEmotions.length)];
-  const subEmotions = emotionData[randomParent].subEmotions;
-  return subEmotions[Math.floor(Math.random() * subEmotions.length)];
+const getRandomLeafEmotion = () => {
+  return ALL_EMOTION_LEAVES[Math.floor(Math.random() * ALL_EMOTION_LEAVES.length)];
 };
 
 // Create a separate component for map click handling
@@ -166,6 +135,12 @@ const MapComponent = () => {
   };
 
   const handleCreateCandle = () => {
+    // Toggle behavior: click once to open, click again to close
+    if (isPopupOpen) {
+      handleClosePopup();
+      return;
+    }
+
     console.log('Create candle button clicked, setting isPopupOpen to true');
     setIsPopupOpen(true);
     setCurrentStep(1);
@@ -187,6 +162,12 @@ const MapComponent = () => {
     console.log('Moving to step 2, resetting temp position');
     setCurrentStep(2);
     setTempPosition(null);
+  };
+
+  const handleBackToEmotionStep = () => {
+    // Go back one step in the candle-creation flow (keep popup open + keep selected emotion)
+    setTempPosition(null);
+    setCurrentStep(1);
   };
 
   const handleConfirmPlacement = async () => {
@@ -303,7 +284,7 @@ const MapComponent = () => {
                 38.9072 + randomOffset(),
                 -77.0369 + randomOffset()
               ],
-              emotion: getRandomSubEmotion(),
+              emotion: getRandomLeafEmotion(),
               timestamp: new Date().toISOString(),
               user_timestamp: new Date().toISOString(),
               user_id: currentUserID,
@@ -437,6 +418,7 @@ const MapComponent = () => {
         isPopupOpen={isPopupOpen}
         onCreateCandle={handleCreateCandle}
         onClosePopup={handleClosePopup}
+        onBackFromPlacement={handleBackToEmotionStep}
         selectedEmotion={selectedEmotion}
         onEmotionSelect={handleEmotionSelect}
         onPlaceCandle={handlePlaceCandle}
