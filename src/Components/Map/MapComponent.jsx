@@ -82,6 +82,18 @@ const MapComponent = () => {
   const [zoomLevel, setZoomLevel] = useState(defaultZoom);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const [toastMessage, setToastMessage] = useState('');
+  const toastTimerRef = useRef(null);
+
+  const showToast = (message) => {
+    if (!message) return;
+    if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
+    setToastMessage(message);
+    toastTimerRef.current = window.setTimeout(() => {
+      setToastMessage('');
+      toastTimerRef.current = null;
+    }, 3200);
+  };
 
   // Save user's candles to localStorage whenever they change
   useEffect(() => {
@@ -206,18 +218,20 @@ const MapComponent = () => {
         setMarkers(prev => [...prev, newMarker]);
         setUserCandles(prev => [...prev, data.id]);
         setLastAction('Candle placed successfully');
+
+        // Clean up ONLY on success
+        setTempPosition(null);
+        setSelectedEmotion(null);
+        setIsPopupOpen(false);
+        setCurrentStep(1);
       }
     } catch (error) {
       console.error('Error saving candle:', error);
       // Postgres exceptions come back as `error.message`
-      setLastAction(error?.message || 'Error saving candle');
+      const msg = error?.message || 'Error saving candle';
+      setLastAction(msg);
+      showToast(msg);
     }
-
-    // Clean up
-    setTempPosition(null);
-    setSelectedEmotion(null);
-    setIsPopupOpen(false);
-    setCurrentStep(1);
   };
 
   const handleClosePopup = () => {
@@ -261,6 +275,7 @@ const MapComponent = () => {
 
   return (
     <div className="map-component-wrapper">
+      {toastMessage ? <div className="toast top-center">{toastMessage}</div> : null}
       <div className="marker-actions-panel">
         <button onClick={async () => {
           try {
@@ -339,12 +354,23 @@ const MapComponent = () => {
         <div>Selected Emotion: {selectedEmotion || 'None'}</div>
         <div>Temp Position: {tempPosition ? `${tempPosition[0].toFixed(4)}, ${tempPosition[1].toFixed(4)}` : 'None'}</div>
         <div>Zoom Level: {zoomLevel}</div>
-        <div>Candle Size: {(() => {
-          const baseSize = 12;
-          const scaleFactor = 1.1;
-          const size = Math.max(12, Math.min(20, baseSize * Math.pow(scaleFactor, zoomLevel - 8)));
-          return `${size}px (${size <= 14 ? 'small' : size <= 17 ? 'medium' : 'large'})`;
-        })()}</div>
+        <div>
+          Candle Size: {(() => {
+            const baseSize = 5;
+            const scaleFactor = 0.5;
+
+            const size = Math.max(
+              2,
+              Math.min(
+                20,
+                baseSize * Math.pow(scaleFactor, 8 - zoomLevel)
+              )
+            );
+
+            return `${size.toFixed(1)}px (${size <= 4 ? 'small' : size <= 7 ? 'medium' : 'large'})`;
+          })()}
+        </div>
+
       </div>
 
       <Sidebar markers={markers}/>
@@ -352,7 +378,7 @@ const MapComponent = () => {
         ref={mapRef}
         center={defaultCenter}
         zoom={defaultZoom}
-        minZoom={0}
+        minZoom={2.5}
         maxZoom={18}
         maxBounds={worldBounds}
         maxBoundsViscosity={1.0}
@@ -392,6 +418,7 @@ const MapComponent = () => {
               userTimestamp={marker.userTimestamp}
               handleDelete={handleDelete}
               isUserCandle={marker.isUserCandle}
+              zoomLevel={zoomLevel}
             />
           );
         })}
@@ -416,6 +443,7 @@ const MapComponent = () => {
             isTemp={true}
             setTempMarker={setTempPosition}
             handleSave={handleConfirmPlacement}
+            zoomLevel={zoomLevel}
           />
         )}
 

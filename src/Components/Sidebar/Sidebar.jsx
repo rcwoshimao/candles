@@ -44,7 +44,8 @@ const resizeHandleVariants = {
 
 const DEFAULT_SIDEBAR_WIDTH = 300;
 const MIN_WIDTH = 200;
-const MAX_WIDTH = 600;
+// const MAX_WIDTH = 600;
+const MAX_WIDTH = 1000;
 
 export const Sidebar = ({ markers }) => {
   const [isOpen, toggleOpen] = useCycle(false, true);

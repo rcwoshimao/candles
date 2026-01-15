@@ -8,11 +8,11 @@
 --    SECURITY DEFINER makes the function run with the privileges of its owner (typically `postgres` in Supabase),
 --    which can bypass RLS on `markers` if RLS is enabled.
 create or replace function public.create_marker_rate_limited(
-  position double precision[],
-  emotion text,
-  timestamp timestamptz,
-  user_timestamp timestamptz,
-  user_id uuid
+  _emotion text,
+  _position double precision[],
+  _timestamp timestamptz,
+  _user_id uuid,
+  _user_timestamp timestamptz
 ) returns public.markers
 language plpgsql
 security definer
@@ -21,22 +21,34 @@ as $$
 declare
   last_created_at timestamptz;
   cooldown interval := interval '2 minutes';
+  burst_allowance int := 2;
+  user_count int := 0;
   inserted public.markers;
 begin
-  select m.created_at
-    into last_created_at
+  -- Count total candles for this browser/user id.
+  select count(*)::int
+    into user_count
   from public.markers m
-  where m.user_id = create_marker_rate_limited.user_id
-  order by m.created_at desc
-  limit 1;
+  where m.user_id = _user_id;
 
-  if last_created_at is not null and (now() - last_created_at) < cooldown then
-    raise exception 'Rate limit: please wait % seconds before placing another candle.', ceil(extract(epoch from (cooldown - (now() - last_created_at))))
-      using errcode = 'P0001';
+  -- Only enforce cooldown AFTER the first N candles.
+  if user_count >= burst_allowance then
+    select m.created_at
+      into last_created_at
+    from public.markers m
+    where m.user_id = _user_id
+    order by m.created_at desc
+    limit 1;
+
+    if last_created_at is not null and (now() - last_created_at) < cooldown then
+      raise exception 'Rate limit: please wait % seconds before placing another candle.',
+        ceil(extract(epoch from (cooldown - (now() - last_created_at))))
+        using errcode = 'P0001';
+    end if;
   end if;
 
   insert into public.markers (position, emotion, timestamp, user_timestamp, user_id)
-  values (create_marker_rate_limited.position, create_marker_rate_limited.emotion, create_marker_rate_limited.timestamp, create_marker_rate_limited.user_timestamp, create_marker_rate_limited.user_id)
+  values (_position, _emotion, _timestamp, _user_timestamp, _user_id)
   returning * into inserted;
 
   return inserted;
@@ -44,8 +56,8 @@ end;
 $$;
 
 -- Allow anon clients to call the RPC
-grant execute on function public.create_marker_rate_limited(double precision[], text, timestamptz, timestamptz, uuid) to anon;
-grant execute on function public.create_marker_rate_limited(double precision[], text, timestamptz, timestamptz, uuid) to authenticated;
+grant execute on function public.create_marker_rate_limited(text, double precision[], timestamptz, uuid, timestamptz) to anon;
+grant execute on function public.create_marker_rate_limited(text, double precision[], timestamptz, uuid, timestamptz) to authenticated;
 
 -- 2) Recommended (optional but strongly suggested): enable RLS and block direct inserts.
 --    NOTE: enabling RLS without a SELECT policy will break reads from the client.

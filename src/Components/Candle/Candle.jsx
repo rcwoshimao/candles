@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Marker, Popup, useMap } from 'react-leaflet';
+import { Marker, Popup } from 'react-leaflet';
 import { format } from 'date-fns';
 import L from 'leaflet';
 import './Candle.css';
@@ -32,18 +32,24 @@ const Candle = React.memo(({
   userTimestamp,
   timestamp,
   isUserCandle,
+  zoomLevel,
 }) => {
-  const map = useMap();
-  const zoom = map.getZoom();
+  // IMPORTANT: `useMap().getZoom()` is not reactive, and this component is memoized.
+  // We pass `zoomLevel` down from `MapComponent` so candles can resize on zoom.
+  const zoom = typeof zoomLevel === 'number' ? zoomLevel : 8;
 
   // Get the parent emotion for color purposes
   const parentEmotion = useMemo(() => getParentEmotion(emotion), [emotion]);
 
   // Memoize size calculations
   const { size, sizeClass } = useMemo(() => {
-    const baseSize = 8; // Moderate base size
-    const scaleFactor = 1.2; 
-    const size = Math.max(8, Math.min(20, baseSize * Math.pow(scaleFactor, zoom - 8))); // Normal scaling
+    const baseZoom = 8;
+    // Size at `baseZoom`. Keep this >= your desired "normal" size.
+    const baseSize = 15;
+    const scalePerZoom = 1.15; // 15% bigger per zoom level
+    const raw = baseSize * Math.pow(scalePerZoom, zoom - baseZoom);
+    // IMPORTANT: keep the min small, otherwise candles can't shrink when zooming out.
+    const size = Math.max(2, Math.min(20, raw));
     return {
       size,
       sizeClass: size <= 14 ? "small" : size <= 17 ? "medium" : "large" // Adjusted thresholds

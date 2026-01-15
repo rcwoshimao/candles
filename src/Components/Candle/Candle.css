@@ -55,21 +55,8 @@
   }
 }
 
-/* Dynamic size classes for different zoom levels - smaller sizes for higher zoom */
-.glow-dot[data-size="small"] { 
-  width: 12px !important; 
-  height: 12px !important; 
-}
-
-.glow-dot[data-size="medium"] { 
-  width: 16px !important; 
-  height: 16px !important; 
-}
-
-.glow-dot[data-size="large"] { 
-  width: 20px !important; 
-  height: 20px !important; 
-}
+/* NOTE: Candle size is set inline in `Candle.jsx` based on zoom.
+   Avoid overriding it here or zoom-based scaling will appear "broken". */
 
 /* Remove all glow effects from wrapper */
 .glow-dot-wrap {

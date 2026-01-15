@@ -32,9 +32,10 @@ Emotional Map is a web application that allows users to anonymously share their 
 src/
 ├── Components/
 │   ├── Map/           # Main map interface
-│   ├── Candle/        # Candle visualization and interaction
+│   ├── Candle/        # Candle marker objecto n map
 │   ├── Sidebar/       # Navigation and controls
 │   └── Charts/        # Data visualization components
+│   └── CreateCandle/  # CreateCandle popup interface
 ├── lib/               # Utilities and backend integration
 └── assets/           # Static resources
 ```
@@ -56,27 +57,12 @@ src/
 - Features:
   - Dynamic sizing based on zoom level
   - Visual effects (glow and flicker)
-  - Emotion selection interface
   - Timestamp display
   - User ownership management
-- Supported emotions:
-  - Happy
-  - Sad
-  - Disgusted
-  - Angry
-  - Surprised
-  - Tired
-  - Fearful
+- Supported emotions seen in `Candle/emotions.json`
 
 #### Sidebar Component
-- Navigation and control interface
-- Contains:
-  - Menu items
-  - Navigation controls
-  - Responsive design elements
-  - User interaction panels
-
-### Data Management
+- Contains charts for visualization, seen `Charts/`
 
 #### User System
 - Anonymous user identification using UUID
@@ -89,12 +75,6 @@ src/
 #### Backend (Supabase)
 - Database table: `markers`
 - Stores:
-  - Position (latitude/longitude)
-  - Emotion type
-  - Creation timestamp
-  - User timestamp
-  - User ID (for ownership)
-  - Additional metadata
 
 ### Technical Stack
 - Frontend: React with Vite
