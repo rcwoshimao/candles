@@ -301,28 +301,31 @@ const MapComponent = () => {
         <button onClick={async () => {
           try {
             const randomOffset = (scale = 20) => (Math.random() - 0.5) * scale;
+            const nowIso = new Date().toISOString();
             const sampleMarker = {
               position: [
                 38.9072 + randomOffset(),
                 -77.0369 + randomOffset()
               ],
               emotion: getRandomLeafEmotion(),
-              timestamp: new Date().toISOString(),
-              user_timestamp: new Date().toISOString(),
+              timestamp: nowIso,
+              user_timestamp: nowIso,
               user_id: currentUserID,
             };
 
             console.log('Adding random marker:', sampleMarker);
 
-            const { data, error } = await supabase
-              .from('markers')
-              .insert([sampleMarker])
-              .select()
-              .single();
+            const { data, error } = await supabase.rpc('create_marker_rate_limited', {
+              _emotion: sampleMarker.emotion,
+              _position: sampleMarker.position,
+              _timestamp: sampleMarker.timestamp,
+              _user_id: sampleMarker.user_id,
+              _user_timestamp: sampleMarker.user_timestamp,
+            });
 
             if (error) {
               console.error('Error adding random marker:', error);
-              setLastAction('Error adding random marker');
+              setLastAction(error?.message || 'Error adding random marker');
               return;
             }
 

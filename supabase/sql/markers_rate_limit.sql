@@ -4,6 +4,18 @@
 --
 -- Apply in Supabase SQL Editor.
 
+-- Config table (so you can change cooldown without editing the function).
+-- You can update it any time via:
+--   update public.app_config set value = '120' where key = 'marker_cooldown_seconds';
+create table if not exists public.app_config (
+  key text primary key,
+  value text not null
+);
+
+insert into public.app_config(key, value)
+values ('marker_cooldown_seconds', '20')
+on conflict (key) do nothing;
+
 -- 1) Create an RPC that enforces a cooldown per user_id and inserts the row.
 --    SECURITY DEFINER makes the function run with the privileges of its owner (typically `postgres` in Supabase),
 --    which can bypass RLS on `markers` if RLS is enabled.
@@ -20,31 +32,32 @@ set search_path = public
 as $$
 declare
   last_created_at timestamptz;
-  cooldown interval := interval '2 minutes';
-  burst_allowance int := 2;
-  user_count int := 0;
+  cooldown_seconds int := 120;
+  cooldown interval;
   inserted public.markers;
 begin
-  -- Count total candles for this browser/user id.
-  select count(*)::int
-    into user_count
+  -- Pull cooldown from config (clamped for safety).
+  select value::int
+    into cooldown_seconds
+  from public.app_config
+  where key = 'marker_cooldown_seconds';
+
+  -- Allow short cooldowns like 20s, but clamp to avoid accidental extremes.
+  cooldown_seconds := greatest(5, least(3600, coalesce(cooldown_seconds, 20)));
+  cooldown := make_interval(secs => cooldown_seconds);
+
+  -- Always enforce cooldown per browser/user id.
+  select m.created_at
+    into last_created_at
   from public.markers m
-  where m.user_id = _user_id;
+  where m.user_id = _user_id
+  order by m.created_at desc
+  limit 1;
 
-  -- Only enforce cooldown AFTER the first N candles.
-  if user_count >= burst_allowance then
-    select m.created_at
-      into last_created_at
-    from public.markers m
-    where m.user_id = _user_id
-    order by m.created_at desc
-    limit 1;
-
-    if last_created_at is not null and (now() - last_created_at) < cooldown then
-      raise exception 'Rate limit: please wait % seconds before placing another candle.',
-        ceil(extract(epoch from (cooldown - (now() - last_created_at))))
-        using errcode = 'P0001';
-    end if;
+  if last_created_at is not null and (now() - last_created_at) < cooldown then
+    raise exception 'Rate limit: please wait % seconds before placing another candle.',
+      ceil(extract(epoch from (cooldown - (now() - last_created_at))))
+      using errcode = 'P0001';
   end if;
 
   insert into public.markers (position, emotion, timestamp, user_timestamp, user_id)
@@ -71,8 +84,13 @@ for select
 to anon, authenticated
 using (true);
 
--- Intentionally DO NOT create an INSERT policy.
--- With RLS enabled, direct inserts from the client will be rejected.
--- Inserts must go through `create_marker_rate_limited()`.
+-- Allow inserts ONLY via the security-definer function.
+-- Direct inserts from the client run as role `anon` and will be rejected because `current_user <> 'postgres'`.
+drop policy if exists "markers_insert_via_rpc" on public.markers;
+create policy "markers_insert_via_rpc"
+on public.markers
+for insert
+to anon, authenticated
+with check (current_user = 'postgres');
 
 
