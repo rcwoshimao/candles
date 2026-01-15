@@ -1,5 +1,4 @@
-import React, { useMemo } from 'react';
-import { BarChart } from '@mui/x-charts/BarChart';
+import React, { useMemo, useState } from 'react';
 import BaseChart from '../Common/BaseChart';
 import emotionParentMap from './emotionParentMap';
 
@@ -10,8 +9,8 @@ function cssVar(name, fallback = '#999') {
 }
 
 function getParentColor(parent) {
-  // Optional mapping for legacy "bad" bucket → reuse tired color if present.
-  if (parent === 'bad') return cssVar('--emotion-tired', '#999');
+  // Optional mapping for legacy "bad" bucket
+  if (parent === 'bad') return cssVar('--emotion-bad', cssVar('--emotion-tired', '#999'));
   return cssVar(`--emotion-${parent}`, '#999');
 }
 
@@ -43,7 +42,11 @@ function getDaypart(hour) {
 const DAYPARTS = ['Late night', 'Morning', 'Afternoon', 'Evening'];
 
 const EmotionTimeOfDayStackedChart = ({ markers }) => {
-  const { dataset, series, totals } = useMemo(() => {
+  const [focused, setFocused] = useState(null);
+  // focused shape:
+  // { parent: string, daypart: string, value: number, pct: number }
+
+  const { bars, parents } = useMemo(() => {
     const counts = {};
     const totals = {};
 
@@ -81,66 +84,148 @@ const EmotionTimeOfDayStackedChart = ({ markers }) => {
       (a, b) => (parentTotals[b] || 0) - (parentTotals[a] || 0)
     );
 
-    const dataset = DAYPARTS.map((dp) => {
-      // Keep bucket label clean (just the daypart).
-      // We'll render totals below the chart for readability.
-      const row = { bucket: dp, total: totals[dp] };
-      for (const parent of parents) {
-        row[parent] = counts[dp][parent] || 0;
-      }
-      return row;
+    const bars = DAYPARTS.map((dp) => {
+      const total = totals[dp] || 0;
+      const segments = parents
+        .map((p) => {
+          const value = counts[dp][p] || 0;
+          const pct = total ? value / total : 0;
+          return {
+            key: p,
+            value,
+            pct,
+            color: getParentColor(p),
+          };
+        })
+        .filter((s) => s.value > 0);
+
+      return { daypart: dp, total, segments };
     });
 
-    const series = parents.map((parent, idx) => ({
-      dataKey: parent,
-      label: parent,
-      stack: 'total',
-      // Set expand on the first series only (applies to the whole stack group).
-      ...(idx === 0 ? { stackOffset: 'expand' } : {}),
-      color: getParentColor(parent),
-    }));
-
-    return { dataset, series, totals };
+    return { bars, parents };
   }, [markers]);
 
   return (
-    <BaseChart title="Emotion by time of day (100% stacked)">
+    <BaseChart title="How do us feel at each part of the day?">
       <div style={{ width: '100%' }}>
-        <BarChart
-          dataset={dataset}
-          xAxis={[
-            {
-              dataKey: 'bucket',
-              scaleType: 'band',
-              tickLabelStyle: { fontSize: 11 },
-            },
-          ]}
-          yAxis={[
-            {
-              min: 0,
-              max: 1,
-              tickNumber: 6,
-              valueFormatter: (v) => `${Math.round(v * 100)}%`,
-            },
-          ]}
-          series={series}
-          height={260}
-          margin={{ top: 10, right: 10, bottom: 28, left: 10 }}
-        />
+        {/* Legend + current focus label */}
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 10,
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 12,
+          }}
+        >
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+            {parents.map((p) => (
+              <div
+                key={p}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  opacity: focused && focused.parent !== p ? 0.35 : 1,
+                  transition: 'opacity 1s ease',
+                }}
+              >
+                <span
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: 2,
+                    background: getParentColor(p),
+                    display: 'inline-block',
+                  }}
+                />
+                <span style={{ fontSize: 12, opacity: 0.9 }}>{p}</span>
+              </div>
+            ))}
+          </div>
 
-        {/* Totals row under the x-axis labels */}
+          <div
+            style={{
+              fontSize: 12,
+              opacity: 0.9,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {focused ? (
+              <>
+                Focused: <strong>{focused.parent}</strong> in <strong>{focused.daypart}</strong> —{' '}
+                {focused.value} ({Math.round(focused.pct * 100)}%)
+              </>
+            ) : (
+              <>Hover a color to focus</>
+            )}
+          </div>
+        </div>
+
         <div
           style={{
             display: 'grid',
             gridTemplateColumns: `repeat(${DAYPARTS.length}, 1fr)`,
-            marginTop: 6,
-            fontSize: 11,
-            opacity: 0.85,
-            textAlign: 'center',
+            gap: 25,
+            alignItems: 'end',
           }}
         >
-          {DAYPARTS.map((dp) => (
-            <div key={dp}>{totals?.[dp] ?? 0} candles</div>
+          {bars.map((bar, idx) => (
+            <div key={bar.daypart} style={{ display: 'flex', flexDirection: 'column', gap: 10}}>
+              {/* Container for the bar */}
+              <div
+                style={{
+                  height: 240,
+                  borderRadius: 25,
+                  background: idx % 2 === 0 ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column-reverse', // stack from bottom
+                }}
+                onMouseLeave={() => setFocused(null)}
+              >
+                {bar.total === 0 ? (
+                  <div style={{ height: '100%', opacity: 0.2 }} />
+                ) : (
+                  bar.segments.map((seg) => (
+                    <div
+                      key={`${bar.daypart}-${seg.key}`}
+                      title={`${seg.key}: ${seg.value} (${Math.round(seg.pct * 100)}%)`}
+                      style={{
+                        height: `${seg.pct * 100}%`,
+                        background: seg.color,
+                        opacity: focused && focused.parent !== seg.key ? 0.18 : 1,
+                        transition: 'opacity 0.5s ease',
+                        cursor: 'default',
+                      }}
+                      onMouseEnter={() =>
+                        setFocused({
+                          parent: seg.key,
+                          daypart: bar.daypart,
+                          value: seg.value,
+                          pct: seg.pct,
+                        })
+                      }
+                    />
+                  ))
+                )}
+              </div>
+
+              {/* Pinned 2-line label box */}
+              <div
+                style={{
+                  borderRadius: 12,
+                  padding: '8px 6px',
+                  textAlign: 'center',
+                  opacity: 0.9,
+                }}
+              >
+                <div style={{ fontSize: 12, fontWeight: 600, opacity: 0.95 }}>{bar.daypart}</div>
+                <div style={{ marginTop: 2, fontSize: 11 }}>{bar.total} candles</div>
+              </div>
+            </div>
           ))}
         </div>
       </div>

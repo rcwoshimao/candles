@@ -174,20 +174,26 @@ const MapComponent = () => {
     console.log('Confirm placement clicked'); // Debug log
     if (!tempPosition || !selectedEmotion) return;
 
+    const nowIso = new Date().toISOString();
     const newCandle = {
       position: tempPosition,
       emotion: selectedEmotion,
-      timestamp: new Date().toISOString(),
-      user_timestamp: new Date().toISOString(),
+      timestamp: nowIso,
+      user_timestamp: nowIso,
       user_id: currentUserID,
     };
 
     try {
-      const { data, error } = await supabase
-        .from('markers')
-        .insert([newCandle])
-        .select()
-        .single();
+      // IMPORTANT: This assumes you've created the RPC `create_marker_rate_limited`
+      // (see `supabase/sql/markers_rate_limit.sql`) and enabled RLS to block direct inserts.
+      // inside handleConfirmPlacement, where you currently save the candle
+    const { data, error } = await supabase.rpc('create_marker_rate_limited', {
+      _emotion: selectedEmotion,
+      _position: tempPosition,
+      _timestamp: nowIso,
+      _user_id: currentUserID,
+      _user_timestamp: nowIso,
+    });
 
       if (error) throw error;
 
@@ -203,7 +209,8 @@ const MapComponent = () => {
       }
     } catch (error) {
       console.error('Error saving candle:', error);
-      setLastAction('Error saving candle');
+      // Postgres exceptions come back as `error.message`
+      setLastAction(error?.message || 'Error saving candle');
     }
 
     // Clean up
