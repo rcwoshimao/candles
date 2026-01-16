@@ -227,10 +227,46 @@ const MapComponent = () => {
       }
     } catch (error) {
       console.error('Error saving candle:', error);
+      console.error('Error details:', {
+        code: error?.code,
+        message: error?.message,
+        details: error?.details,
+        hint: error?.hint,
+      });
       // Postgres exceptions come back as `error.message`
       const msg = error?.message || 'Error saving candle';
       setLastAction(msg);
       showToast(msg);
+
+      // Log rejections (especially rate-limit errors) to database
+      // Supabase wraps Postgres errors, so check message content
+      const isRateLimit = msg.includes('Rate limit') || 
+                          msg.includes('rate limit') ||
+                          msg?.code === 'P0001' ||
+                          error?.code === 'P0001';
+      
+      if (isRateLimit) {
+        console.log('Logging rejection to database...', { user_id: currentUserID, reason: msg });
+        supabase.rpc('log_marker_rejection', {
+          _user_id: currentUserID,
+          _reason: msg,
+          _payload: {
+            emotion: selectedEmotion,
+            position: tempPosition,
+            timestamp: nowIso,
+          },
+        }).then(({ error: logError }) => {
+          if (logError) {
+            console.error('Failed to log rejection:', logError);
+          } else {
+            console.log('Rejection logged successfully');
+          }
+        }).catch((logError) => {
+          console.error('Exception while logging rejection:', logError);
+        });
+      } else {
+        console.log('Not a rate-limit error, skipping logging');
+      }
     }
   };
 

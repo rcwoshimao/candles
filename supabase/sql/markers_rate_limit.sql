@@ -93,4 +93,23 @@ for insert
 to anon, authenticated
 with check (current_user = 'postgres');
 
+-- 3) Simple RPC to log rejections (client-side can call this when rate limit errors occur).
+create or replace function public.log_marker_rejection(
+  _user_id uuid,
+  _reason text,
+  _payload jsonb
+) returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.marker_rejections (user_id, reason, payload)
+  values (_user_id, _reason, _payload);
+end;
+$$;
+
+grant execute on function public.log_marker_rejection(uuid, text, jsonb) to anon;
+grant execute on function public.log_marker_rejection(uuid, text, jsonb) to authenticated;
+
 
