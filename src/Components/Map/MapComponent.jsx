@@ -3,12 +3,11 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 're
 import 'leaflet/dist/leaflet.css';
 import './MapComponent.css'; 
 import Sidebar from '../Sidebar/Sidebar';
+import LocateButton from '../LocateButton/LocateButton'; 
 import Candle from '../Candle/Candle';
 import CreateCandleControls from '../CreateCandle/CreateCandleControls';
 import emotions from '../Candle/emotions.json';
 import { supabase } from '../../lib/supabase';
-import L from 'leaflet';
-
 const defaultCenter = [38.9072, -77.0369];
 const defaultZoom = 8;
 
@@ -68,6 +67,8 @@ const ZoomTracker = ({ onZoomChange }) => {
   
   return null;
 };
+
+
 
 const MapComponent = () => {
   const mapRef = useRef();
@@ -240,13 +241,34 @@ const MapComponent = () => {
 
       // Log rejections (especially rate-limit errors) to database
       // Supabase wraps Postgres errors, so check message content
-      const isRateLimit = msg.includes('Rate limit') || 
-                          msg.includes('rate limit') ||
-                          msg?.code === 'P0001' ||
-                          error?.code === 'P0001';
+      const isRateLimit = msg.toLowerCase().includes('rate limit') || 
+                          error?.code === 'P0001' ||
+                          error?.details?.includes('P0001');
+      
+      console.log('Error analysis:', {
+        isRateLimit,
+        msg,
+        errorCode: error?.code,
+        errorDetails: error?.details,
+        fullError: error
+      });
       
       if (isRateLimit) {
-        console.log('Logging rejection to database...', { user_id: currentUserID, reason: msg });
+        console.log('Logging rejection to database...', { 
+          user_id: currentUserID, 
+          reason: msg,
+          payload: {
+            emotion: selectedEmotion,
+            position: tempPosition,
+            timestamp: nowIso,
+          }
+        });
+        
+        if (!currentUserID) {
+          console.error('Cannot log rejection: currentUserID is null/undefined');
+          return;
+        }
+        
         supabase.rpc('log_marker_rejection', {
           _user_id: currentUserID,
           _reason: msg,
@@ -255,17 +277,23 @@ const MapComponent = () => {
             position: tempPosition,
             timestamp: nowIso,
           },
-        }).then(({ error: logError }) => {
+        }).then(({ data, error: logError }) => {
           if (logError) {
-            console.error('Failed to log rejection:', logError);
+            console.error('Failed to log rejection - RPC error:', logError);
+            console.error('RPC error details:', {
+              code: logError.code,
+              message: logError.message,
+              details: logError.details,
+              hint: logError.hint
+            });
           } else {
-            console.log('Rejection logged successfully');
+            console.log('Rejection logged successfully', data);
           }
         }).catch((logError) => {
           console.error('Exception while logging rejection:', logError);
         });
       } else {
-        console.log('Not a rate-limit error, skipping logging');
+        console.log('Not a rate-limit error, skipping logging. Message:', msg);
       }
     }
   };
@@ -361,7 +389,41 @@ const MapComponent = () => {
 
             if (error) {
               console.error('Error adding random marker:', error);
-              setLastAction(error?.message || 'Error adding random marker');
+              const msg = error?.message || 'Error adding random marker';
+              setLastAction(msg);
+              
+              // Log rejections (especially rate-limit errors) to database
+              const isRateLimit = msg.toLowerCase().includes('rate limit') || 
+                                  error?.code === 'P0001' ||
+                                  error?.details?.includes('P0001');
+              
+              if (isRateLimit) {
+                console.log('Logging rejection from random marker button...', { 
+                  user_id: currentUserID, 
+                  reason: msg,
+                  payload: sampleMarker
+                });
+                
+                if (currentUserID) {
+                  supabase.rpc('log_marker_rejection', {
+                    _user_id: currentUserID,
+                    _reason: msg,
+                    _payload: {
+                      emotion: sampleMarker.emotion,
+                      position: sampleMarker.position,
+                      timestamp: sampleMarker.timestamp,
+                    },
+                  }).then(({ error: logError }) => {
+                    if (logError) {
+                      console.error('Failed to log rejection - RPC error:', logError);
+                    } else {
+                      console.log('Rejection logged successfully from random marker');
+                    }
+                  }).catch((logError) => {
+                    console.error('Exception while logging rejection:', logError);
+                  });
+                }
+              }
               return;
             }
 
@@ -431,6 +493,13 @@ const MapComponent = () => {
 
         {/* Add zoom tracking */}
         <ZoomTracker onZoomChange={setZoomLevel} />
+
+        {/* Add locate button */}
+        <LocateButton onLocationFound={(error) => {
+          if (error) {
+            showToast(error);
+          }
+        }} />
 
         {/* Add the MapClickHandler component */}
         <MapClickHandler 
