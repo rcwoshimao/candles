@@ -567,6 +567,7 @@ const MapComponent = () => {
         onPlaceCandle={handlePlaceCandle}
         onConfirmPlacement={handleConfirmPlacement}
         currentStep={currentStep}
+        tempPosition={tempPosition}
       />
     </div>
   );

@@ -12,6 +12,7 @@ const CreateCandleControls = ({
   onPlaceCandle,
   onConfirmPlacement,
   currentStep,
+  tempPosition,
 }) => {
   return (
     <div
@@ -33,6 +34,7 @@ const CreateCandleControls = ({
           onPlaceCandle={onPlaceCandle}
           onConfirmPlacement={onConfirmPlacement}
           currentStep={currentStep}
+          tempPosition={tempPosition}
         />
         <CreateCandleButton onClick={onCreateCandle} />
       </div>

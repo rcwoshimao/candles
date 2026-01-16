@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import emotions from '../Candle/emotions.json';
+import './CreateCandlePopup.css'; 
 
 const CreateCandlePopup = ({
   isOpen,
@@ -10,8 +11,9 @@ const CreateCandlePopup = ({
   onConfirmPlacement,
   onBack,
   currentStep,
+  tempPosition,
 }) => {
-  const [selectStep, setSelectStep] = useState(1); // 1=parent, 2=category, 3=leaf, 4=confirm
+  const [selectStep, setSelectStep] = useState(1); // 1=parent, 2=category, 3=leaf (no confirm step)
   const [selectedMain, setSelectedMain] = useState(null);
   const [selectedMid, setSelectedMid] = useState(null);
   const [selectedLeaf, setSelectedLeaf] = useState(null);
@@ -46,11 +48,11 @@ const CreateCandlePopup = ({
 
   const canGoLeft = currentStep === 2 ? Boolean(onBack) : selectStep > 1;
   const canGoRight = (() => {
-    if (currentStep === 2) return true;
+    if (currentStep === 2) return Boolean(tempPosition); // Disabled if no candle placed
     if (selectStep === 1) return Boolean(selectedMain);
     if (selectStep === 2) return Boolean(selectedMid);
     if (selectStep === 3) return Boolean(selectedLeaf);
-    return true; // step 4 confirm
+    return false; // No step 4
   })();
 
   const handleLeft = () => {
@@ -70,10 +72,6 @@ const CreateCandlePopup = ({
       setSelectStep(2);
       setSelectedLeaf(null);
       return;
-    }
-
-    if (selectStep === 4) {
-      setSelectStep(3);
     }
   };
 
@@ -97,53 +95,16 @@ const CreateCandlePopup = ({
 
     if (selectStep === 3) {
       if (!selectedLeaf) return;
-      setSelectStep(4);
+      // Jump directly to placement instead of going to confirm step
+      onPlaceCandle();
       return;
     }
-
-    // selectStep === 4
-    onPlaceCandle();
-  };
-
-  const panelStyle = {
-    position: 'absolute',
-    bottom: 'calc(100% + 8px)',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    background: '#111',
-    color: 'white',
-    padding: 12,
-    borderRadius: 8,
-    width: 320,
-  };
-
-  const topBarStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-  };
-
-  const crumbStyle = {
-    fontSize: 12,
-    opacity: 0.9,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-    maxWidth: 260,
-  };
-
-  const navRowStyle = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    gap: 8,
-    marginTop: 10,
   };
 
   return (
-    <div style={panelStyle}>
-      <div style={topBarStyle}>
-        <div style={crumbStyle}>{breadcrumb || ' '}</div>
+    <div className="create-candle-panel">
+      <div className="create-candle-top-bar">
+        <div className="create-candle-breadcrumb">{breadcrumb || ' '}</div>
         <button
           onClick={onClose}
           aria-label="Close"
@@ -237,21 +198,11 @@ const CreateCandlePopup = ({
             </>
           )}
 
-          {selectStep === 4 && (
-            <>
-              <h3 style={{ margin: 0 }}>Confirm</h3>
-              <div>
-                Selected: {selectedMain} &gt; {selectedMid} &gt; {selectedLeaf}
-              </div>
-              <div style={{ opacity: 0.7, fontSize: 12 }}>Stored emotion: {selectedEmotion || selectedLeaf}</div>
-            </>
-          )}
-
-          <div style={navRowStyle}>
-            <button onClick={handleLeft} disabled={!canGoLeft}>
+          <div className="create-candle-nav-row">
+            <button className="nav-btn" onClick={handleLeft} disabled={!canGoLeft}>
               ←
             </button>
-            <button onClick={handleRight} disabled={!canGoRight}>
+            <button className="nav-btn" onClick={handleRight} disabled={!canGoRight}>
               →
             </button>
           </div>
@@ -262,12 +213,12 @@ const CreateCandlePopup = ({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <h3 style={{ margin: 0 }}>Place your candle</h3>
           <p style={{ margin: 0 }}>Click anywhere on the map to place your candle.</p>
-          <div style={navRowStyle}>
-            <button onClick={handleLeft} disabled={!canGoLeft}>
+          <div className="create-candle-nav-row">
+            <button className="nav-btn" onClick={handleLeft} disabled={!canGoLeft}>
               ←
             </button>
-            <button onClick={handleRight} disabled={!canGoRight}>
-              →
+            <button className="nav-btn" onClick={handleRight} disabled={!canGoRight}>
+              Place candle
             </button>
           </div>
         </div>
