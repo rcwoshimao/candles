@@ -1,10 +1,12 @@
 import * as React from "react";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, Suspense } from "react";
 import { motion, useCycle } from "framer-motion";
 import { useDimensions } from "./use-dimensions";
 import { MenuToggle } from "./MenuToggle";
-import ChartContainer from "../Charts/ChartContainer/ChartContainer";
 import './Sidebar.css';
+
+// Lazy load ChartContainer for code splitting
+const ChartContainer = React.lazy(() => import("../Charts/ChartContainer/ChartContainer"));
 
 const sidebar = {
   open: (height = 1000) => ({
@@ -151,7 +153,9 @@ export const Sidebar = ({ markers }) => {
             
             <div className="sidebar-charts-container">
               {isFullyOpen && markers && (
-                <ChartContainer markers={markers} />
+                <Suspense fallback={<div className="chart-loading">Loading charts...</div>}>
+                  <ChartContainer markers={markers} />
+                </Suspense>
               )}
             </div>
           </div>

@@ -1,4 +1,4 @@
-import emotions from '../Components/Candle/emotions.json';
+import emotions from './emotions.json';
 
 // Build a mapping of every non-leaf emotion label to its top-level parent emotion.
 // - Parent emotions map to themselves (e.g. "happy" -> "happy")

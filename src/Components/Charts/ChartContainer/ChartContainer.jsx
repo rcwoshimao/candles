@@ -1,9 +1,11 @@
-import React from 'react';
-import EmotionDistributionChart from '../Charts/EmotionDistributionChart';
-import EmotionMuiDonutChart from '../Charts/EmotionMuiDonutChart';
-import EmotionTimeOfDayStackedChart from '../Charts/EmotionTimeOfDayStackedChart';
-import EmotionWeekdayHeatmap from '../Charts/EmotionWeekdayHeatmap';
+import React, { Suspense } from 'react';
 import './ChartContainer.css';
+
+// Lazy load chart components for code splitting
+const EmotionDistributionChart = React.lazy(() => import('../Charts/EmotionDistributionChart'));
+const EmotionMuiDonutChart = React.lazy(() => import('../Charts/EmotionMuiDonutChart'));
+const EmotionTimeOfDayStackedChart = React.lazy(() => import('../Charts/EmotionTimeOfDayStackedChart'));
+const EmotionWeekdayHeatmap = React.lazy(() => import('../Charts/EmotionWeekdayHeatmap'));
 
 const ChartContainer = ({ markers }) => {
   if (!markers) {
@@ -12,10 +14,12 @@ const ChartContainer = ({ markers }) => {
 
   return (
     <div className="chart-container">
-      <EmotionDistributionChart data={markers} />
-      <EmotionMuiDonutChart markers={markers} />
-      <EmotionTimeOfDayStackedChart markers={markers} />
-      <EmotionWeekdayHeatmap markers={markers} />
+      <Suspense fallback={<div className="chart-loading">Loading charts...</div>}>
+        <EmotionDistributionChart data={markers} />
+        <EmotionMuiDonutChart markers={markers} />
+        <EmotionTimeOfDayStackedChart markers={markers} />
+        <EmotionWeekdayHeatmap markers={markers} />
+      </Suspense>
     </div>
   );
 };

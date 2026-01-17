@@ -1,12 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import emotions from '../Candle/emotions.json';
+import emotions from '../../lib/emotions.json';
 import './CreateCandlePopup.css'; 
 
 const CreateCandlePopup = ({
   isOpen,
   onClose,
   onEmotionSelect,
-  selectedEmotion, // kept for future; selection is driven by internal state for now
   onPlaceCandle,
   onConfirmPlacement,
   onBack,

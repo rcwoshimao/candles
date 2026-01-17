@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import './MapComponent.css'; 
 import Sidebar from '../Sidebar/Sidebar';
 import LocateButton from '../LocateButton/LocateButton'; 
 import Candle from '../Candle/Candle';
 import CreateCandleControls from '../CreateCandle/CreateCandleControls';
-import emotions from '../Candle/emotions.json';
+import emotions from '../../lib/emotions.json';
 import { supabase } from '../../lib/supabase';
 const defaultCenter = [38.9072, -77.0369];
 const defaultZoom = 8;

@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { PieChart, pieArcClasses, pieArcLabelClasses } from '@mui/x-charts/PieChart';
 import BaseChart from '../Common/BaseChart';
-import emotions from '../../Candle/emotions.json';
+import emotions from '../../../lib/emotions.json';
 import emotionParentMap from './emotionParentMap';
 import { getClickedInfo } from './Gadgets/getClickedInfo';
 
