@@ -1,6 +1,7 @@
 import React from 'react';
 import { useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import LocationPinIcon from '@mui/icons-material/LocationPin';
 
 // Locate button component (uses browser geolocation)
 const LocateButton = ({ onLocationFound }) => {
@@ -64,7 +65,7 @@ const LocateButton = ({ onLocationFound }) => {
           if (!isLocating) e.target.style.background = 'rgba(0, 0, 0, 0.85)';
         }}
       >
-        {isLocating ? 'Locating...' : '📍 Locate Me'}
+        {isLocating ? ('Locating...') :(<><LocationPinIcon/> Locate Me </>)}
       </button>
     );
   };

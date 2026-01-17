@@ -3,6 +3,7 @@ import { PieChart, pieArcClasses, pieArcLabelClasses } from '@mui/x-charts/PieCh
 import BaseChart from '../Common/BaseChart';
 import emotions from '../../Candle/emotions.json';
 import emotionParentMap from './emotionParentMap';
+import { getClickedInfo } from './Gadgets/getClickedInfo';
 
 function buildLeafToMidMap(tree) {
   const leafToMid = {};
@@ -107,6 +108,8 @@ const EmotionMuiDonutChart = ({ markers, skipAnimation = false }) => {
     return { total, parentData, midData, leafData };
   }, [markers, leafToMid]);
 
+  const clickedInfo = getClickedInfo(clicked, parentData, midData, leafData, total);
+
   return (
     <BaseChart title="Emotion Breakdown (3 levels)">
       <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -171,10 +174,23 @@ const EmotionMuiDonutChart = ({ markers, skipAnimation = false }) => {
         />
       </div>
 
-      {clicked && (
-        <div style={{ marginTop: 8, fontSize: 12, opacity: 0.9 }}>
-          Clicked: series <strong>{String(clicked.seriesId)}</strong>, index{' '}
-          <strong>{String(clicked.dataIndex)}</strong>
+      {clickedInfo && (
+        <div style={{ marginTop: 8, fontSize: 15, opacity: 0.9 }}>
+          <div style={{ marginBottom: 4 }}>
+            <strong>{clickedInfo.path}</strong>
+          </div>
+          <div>Number of people: <strong>{clickedInfo.count}</strong></div>
+          <div>Percentage out of all emotions: <strong>{clickedInfo.pctOfTotal}%</strong></div>
+          {clickedInfo.hasMid && !clickedInfo.isLeaf && (
+            <div>Percentage out of <strong>{clickedInfo.parentName}</strong>: <strong>{clickedInfo.pctOfMid}%</strong></div>
+          )}
+          {clickedInfo.isLeaf && (
+            <>
+              
+              <div>Percentage out of <strong>{clickedInfo.parentName}</strong>: <strong>{clickedInfo.pctOfParent}%</strong></div>
+              <div>Percentage out of <strong>{clickedInfo.midName}</strong>: <strong>{clickedInfo.pctOfMid}%</strong></div>
+            </>
+          )}
         </div>
       )}
     </BaseChart>
