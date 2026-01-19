@@ -105,24 +105,71 @@ const MapComponent = () => {
   useEffect(() => {
     const fetchMarkers = async () => {
       try {
-        const { data, error } = await supabase
+        // Supabase defaults to 1000 row limit per query. Fetch in batches to get all markers.
+        // Use smaller batches (1000) to work within Supabase's default limits
+        const BATCH_SIZE = 1000;
+        const MAX_BATCHES = 3; // Max 100k rows for testing
+        let allMarkers = [];
+        
+        // First, get total count to know how many batches we need
+        const { count: totalCount, error: countError } = await supabase
           .from('markers')
-          .select('*')
-          .order('created_at', { ascending: false });
+          .select('*', { count: 'exact', head: true });
+        
+        if (countError) {
+          console.warn('Could not get total count:', countError);
+        } else {
+          console.log(`Total markers in database: ${totalCount}`);
+        }
+        
+        for (let batch = 0; batch < MAX_BATCHES; batch++) {
+          const from = batch * BATCH_SIZE;
+          const to = from + BATCH_SIZE - 1;
+          
+          console.log(`Fetching markers batch ${batch + 1}: range(${from}, ${to})`);
+          
+          const { data, error } = await supabase
+            .from('markers')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .range(from, to);
 
-        if (error) throw error;
+          if (error) {
+            console.error(`Error in batch ${batch + 1}:`, error);
+            throw error;
+          }
 
-        if (data) {
-          const markersWithUserInfo = data.map(marker => ({
+          if (data && data.length > 0) {
+            allMarkers = allMarkers.concat(data);
+            console.log(`Batch ${batch + 1}: Fetched ${data.length} markers (Total so far: ${allMarkers.length})`);
+            
+            // If we got less than BATCH_SIZE, we've reached the end
+            if (data.length < BATCH_SIZE) {
+              console.log(`Reached end of data at batch ${batch + 1}`);
+              break;
+            }
+          } else {
+            console.log(`Batch ${batch + 1}: No more data available`);
+            break;
+          }
+        }
+
+        console.log(`Total markers fetched: ${allMarkers.length}`);
+
+        if (allMarkers.length > 0) {
+          const markersWithUserInfo = allMarkers.map(marker => ({
             ...marker,
             userTimestamp: new Date(marker.user_timestamp),
             isUserCandle: marker.user_id === currentUserID
           }));
           setMarkers(markersWithUserInfo);
+          setLastAction(`Loaded ${markersWithUserInfo.length} markers`);
+        } else {
+          setLastAction('No markers found');
         }
       } catch (error) {
         console.error('Error fetching markers:', error);
-        setLastAction('Error fetching markers');
+        setLastAction(`Error fetching markers: ${error.message}`);
       }
     };
 
@@ -332,9 +379,12 @@ const MapComponent = () => {
     }
   };
 
+  // Leaflet uses Web Mercator projection with valid bounds:
+  // Latitude: -85.0511287798 to 85.0511287798 (Mercator limit)
+  // Longitude: -180 to 180
   const worldBounds = [
-    [-85, -180], // Southwest
-    [85, 180]    // Northeast
+    [-85.0511287798, -180], // Southwest
+    [85.0511287798, 180]    // Northeast
   ];
 
   return (

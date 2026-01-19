@@ -1,7 +1,6 @@
-import React, { useMemo } from 'react';
-import { Marker, Popup } from 'react-leaflet';
+import React, { useMemo, useRef, useEffect } from 'react';
+import { CircleMarker, Popup, Marker } from 'react-leaflet';
 import { format } from 'date-fns';
-import L from 'leaflet';
 import './Candle.css';
 import emotionParentMap from '../../lib/emotionParentMap';
 
@@ -11,14 +10,76 @@ const getParentEmotion = (emotion) => {
 };
 
 // Memoize the random flicker function to avoid recalculation
+// Now only returns 1 or 2 (simplified from 3 options)
 const getRandomFlicker = (() => {
   const flickers = new Map();
   return (id) => {
     if (!flickers.has(id)) {
-      flickers.set(id, Math.floor(Math.random() * 3) + 1);
+      flickers.set(id, Math.floor(Math.random() * 2) + 1); // Returns 1 or 2
     }
     return flickers.get(id);
   };
+})();
+
+// Cache CSS variable values once (no DOM manipulation per icon)
+const getEmotionColor = (() => {
+  const colorCache = new Map();
+  
+  // Get color from CSS variable once and cache it
+  const getColor = (emotion) => {
+    if (colorCache.has(emotion)) {
+      return colorCache.get(emotion);
+    }
+    
+    // Create a one-time element to read CSS variable (only on first call)
+    if (typeof window !== 'undefined') {
+      const testDiv = document.createElement('div');
+      testDiv.className = 'glow-dot';
+      testDiv.setAttribute('data-emotion', emotion);
+      testDiv.style.position = 'absolute';
+      testDiv.style.visibility = 'hidden';
+      document.body.appendChild(testDiv);
+      
+      const computedStyle = window.getComputedStyle(testDiv);
+      const bgColor = computedStyle.getPropertyValue(`--emotion-${emotion}`).trim() || 
+                      computedStyle.getPropertyValue('background-color');
+      
+      document.body.removeChild(testDiv);
+      
+      // Resolve CSS variable references if needed
+      let resolvedColor = bgColor;
+      if (bgColor.startsWith('var(')) {
+        // Fallback to direct color mapping
+        const colorMap = {
+          'happy': '#ffd24d',
+          'sad': '#6b74ff',
+          'disgusted': '#44de70',
+          'angry': '#ff5a52',
+          'surprised': '#33e0d7',
+          'bad': '#9a76ff',
+          'fearful': '#ff77e3',
+        };
+        resolvedColor = colorMap[emotion] || '#999';
+      }
+      
+      colorCache.set(emotion, resolvedColor);
+      return resolvedColor;
+    }
+    
+    // Fallback colors if window is undefined (SSR)
+    const colorMap = {
+      'happy': '#ffd24d',
+      'sad': '#6b74ff',
+      'disgusted': '#44de70',
+      'angry': '#ff5a52',
+      'surprised': '#33e0d7',
+      'bad': '#9a76ff',
+      'fearful': '#ff77e3',
+    };
+    return colorMap[emotion] || '#999';
+  };
+  
+  return getColor;
 })();
 
 const Candle = React.memo(({
@@ -40,70 +101,29 @@ const Candle = React.memo(({
 
   // Get the parent emotion for color purposes
   const parentEmotion = useMemo(() => getParentEmotion(emotion), [emotion]);
+  
+  // Get flicker animation number for this candle
+  const flickerNumber = useMemo(() => getRandomFlicker(id), [id]);
+  
+  // Ref to CircleMarker for animation
+  const circleRef = useRef(null);
 
-  // Memoize size calculations
-  const { size, sizeClass } = useMemo(() => {
+  // Memoize size and color calculations
+  const { radius, color } = useMemo(() => {
     const baseZoom = 8;
     // Size at `baseZoom`. Keep this >= your desired "normal" size.
-    const baseSize = 15;
+    const baseSize = 10;
     const scalePerZoom = 1.15; // 15% bigger per zoom level
     const raw = baseSize * Math.pow(scalePerZoom, zoom - baseZoom);
     // IMPORTANT: keep the min small, otherwise candles can't shrink when zooming out.
-    const size = Math.max(2, Math.min(20, raw));
-    return {
-      size,
-      sizeClass: size <= 14 ? "small" : size <= 17 ? "medium" : "large" // Adjusted thresholds
-    };
-  }, [zoom]);
-
-  // Memoize the icon creation
-  const candleIcon = useMemo(() => {
-    console.log('Creating candle icon:', { emotion, parentEmotion, sizeClass, size, id, zoom });
+    // CircleMarker radius is in meters, but we'll use pixel-like sizing
+    const radius = Math.max(2, Math.min(20, raw)) / 2; // Divide by 2 for radius
     
-    // Create a div element to get CSS variable for background color
-    const testDiv = document.createElement('div');
-    testDiv.className = 'glow-dot';
-    testDiv.setAttribute('data-emotion', parentEmotion);
-    document.body.appendChild(testDiv);
+    // Get emotion color (cached, no DOM manipulation)
+    const emotionColor = getEmotionColor(parentEmotion);
     
-    // Get computed styles to verify CSS variables
-    const computedStyle = window.getComputedStyle(testDiv);
-    const bgColor = computedStyle.getPropertyValue(`--emotion-${parentEmotion}`).trim();
-    
-    console.log('CSS Variables:', { bgColor });
-    
-    // Remove test div
-    document.body.removeChild(testDiv);
-
-    // Determine if we should show clip-path based on zoom level
-    const shouldShowClipPath = zoom > 3;
-    const clipPathStyle = shouldShowClipPath ? '' : 'clip-path: none; border-radius: 50%;';
-
-    const iconHtml = `
-      <span class="glow-dot-wrap" data-emotion="${parentEmotion}">
-        <div class="glow-dot" 
-             data-emotion="${parentEmotion}" 
-             data-size="${sizeClass}" 
-             data-flicker="${getRandomFlicker(id)}"
-             data-zoom="${zoom}"
-             style="
-               background-color: ${bgColor || 'var(--emotion-' + parentEmotion + ')'}; 
-               width: ${size}px;
-               height: ${size}px;
-               ${clipPathStyle}
-             ">
-        </div>
-      </span>
-    `;
-    
-    return L.divIcon({
-      className: 'candle-marker',
-      html: iconHtml,
-      iconSize: [size, size],
-      iconAnchor: [size / 2, size / 2],
-      popupAnchor: [0, -size / 2],
-    });
-  }, [emotion, parentEmotion, sizeClass, size, id, zoom]);
+    return { radius, color: emotionColor };
+  }, [zoom, parentEmotion]);
 
   // Memoize formatted dates
   const { formattedUserTime, formattedCreatorTime } = useMemo(() => {
@@ -125,27 +145,84 @@ const Candle = React.memo(({
     return { formattedUserTime: userTime, formattedCreatorTime: creatorTime };
   }, [userTimestamp, timestamp]);
 
-  // For temporary candles, we don't show a popup
+  // Conditionally apply flicker - disable when zoomed out for better performance
+  // Only animate when zoom >= 7 (when candles are large enough to see flicker)
+  const shouldFlicker = zoom >= 7;
+  
+  useEffect(() => {
+    if (!circleRef.current || isTemp || !shouldFlicker) return;
+    
+    const circleMarker = circleRef.current.leafletElement;
+    if (!circleMarker) return;
+
+    const applyFlicker = () => {
+      const element = circleMarker.getElement();
+      if (element) {
+        const path = element.querySelector('path');
+        if (path) {
+          path.setAttribute('data-flicker', flickerNumber);
+          path.setAttribute('class', `glow-dot-flicker flicker-${flickerNumber}`);
+        }
+      }
+    };
+
+    // Try after a delay to ensure DOM is ready
+    const timer = setTimeout(applyFlicker, 50);
+    return () => clearTimeout(timer);
+  }, [flickerNumber, isTemp, position, shouldFlicker, zoom]);
+
+  // CircleMarker path options - optimized for performance
+  const pathOptions = useMemo(() => ({
+    fillColor: color,
+    color: color,
+    fillOpacity: 0.8,
+    opacity: 1,
+    weight: 0,
+    className: `candle-circle flicker-${flickerNumber}`, // Add class for CSS targeting
+  }), [color, flickerNumber]);
+
+  // For temporary candles, use CircleMarker (without flicker)
   if (isTemp) {
     return (
-      <Marker 
-        position={position} 
-        icon={candleIcon}
-        draggable={true}
+      <CircleMarker 
+        center={position}
+        radius={radius}
+        pathOptions={{ ...pathOptions, className: 'candle-circle' }}
         eventHandlers={{
-          dragend: (e) => {
-            const newPos = e.target.getLatLng();
-            setTempMarker([newPos.lat, newPos.lng]);
-          },
           click: handleSave
         }}
-      />
+      >
+        {/* Note: Dragging not well supported with CircleMarker - consider alternative for temp candles */}
+      </CircleMarker>
     );
   }
 
-  // For permanent candles, show the info popup
+  // For permanent candles, use CircleMarker (much faster) with flicker
   return (
-    <Marker position={position} icon={candleIcon}>
+    <CircleMarker 
+      ref={circleRef}
+      center={position}
+      radius={radius}
+      pathOptions={pathOptions}
+      eventHandlers={{
+        add: () => {
+          // When CircleMarker is added to map, apply flicker (only if zoomed in enough)
+          if (circleRef.current && !isTemp && shouldFlicker) {
+            const circleMarker = circleRef.current.leafletElement;
+            if (circleMarker) {
+              const element = circleMarker.getElement();
+              if (element) {
+                const path = element.querySelector('path');
+                if (path) {
+                  path.setAttribute('data-flicker', flickerNumber);
+                  path.setAttribute('class', `flicker-${flickerNumber}`);
+                }
+              }
+            }
+          }
+        }
+      }}
+    >
       <Popup>
         <div>
           <p><strong>Emotion:</strong> {emotion}</p>
@@ -164,7 +241,7 @@ const Candle = React.memo(({
           )}
         </div>
       </Popup>
-    </Marker>
+    </CircleMarker>
   );
 });
 

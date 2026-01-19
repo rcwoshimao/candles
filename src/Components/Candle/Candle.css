@@ -22,7 +22,7 @@
   border: none;
 }
 
-/* Simple on/off flicker animations */
+/* Simple on/off flicker animations - slower for better performance */
 @keyframes flicker1 {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.25; }
@@ -34,22 +34,35 @@
   55% { opacity: 0.25; }
 }
 
-@keyframes flicker3 {
-  0%, 100% { opacity: 1; }
-  40% { opacity: 0.25; }
-  60% { opacity: 0.25; }
-}
+/* Flicker assignments for old divIcon - slower animations */
+.glow-dot[data-flicker="1"] { animation: flicker1 6s ease-in-out infinite; }
+.glow-dot[data-flicker="2"] { animation: flicker2 7s ease-in-out infinite; }
 
-/* Flicker assignments */
-.glow-dot[data-flicker="1"] { animation: flicker1 3.5s ease-in-out infinite; }
-.glow-dot[data-flicker="2"] { animation: flicker2 4s ease-in-out infinite; }
-.glow-dot[data-flicker="3"] { animation: flicker3 4.5s ease-in-out infinite; }
+/* Flicker assignments for CircleMarker SVG paths - optimized for performance */
+path[data-flicker="1"],
+path.flicker-1 {
+  animation: flicker1 6s ease-in-out infinite;
+  will-change: opacity;
+  opacity: 1;
+}
+path[data-flicker="2"],
+path.flicker-2 {
+  animation: flicker2 7s ease-in-out infinite;
+  will-change: opacity;
+  opacity: 1;
+}
 
 /* Reduce animation when user prefers reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .glow-dot[data-flicker="1"],
-  .glow-dot[data-flicker="2"],
-  .glow-dot[data-flicker="3"] {
+  .glow-dot[data-flicker="2"] {
+    animation: none;
+    opacity: 1;
+  }
+  path[data-flicker="1"],
+  path[data-flicker="2"],
+  path.flicker-1,
+  path.flicker-2 {
     animation: none;
     opacity: 1;
   }
