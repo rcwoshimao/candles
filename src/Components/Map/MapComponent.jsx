@@ -6,6 +6,9 @@ import Sidebar from '../Sidebar/Sidebar';
 import LocateButton from '../LocateButton/LocateButton'; 
 import Candle from '../Candle/Candle';
 import CreateCandleControls from '../CreateCandle/CreateCandleControls';
+import DebugPanel from '../DebugPanel/DebugPanel';
+import LoadingScreen from '../LoadingScreen/LoadingScreen';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import emotions from '../../lib/emotions.json';
 import { supabase } from '../../lib/supabase';
 const defaultCenter = [38.9072, -77.0369];
@@ -73,6 +76,8 @@ const ZoomTracker = ({ onZoomChange }) => {
 const MapComponent = () => {
   const mapRef = useRef();
   const [markers, setMarkers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showLoadingScreen, setShowLoadingScreen] = useState(true);
   const [tempPosition, setTempPosition] = useState(null);
   const [lastAction, setLastAction] = useState('');
   const [selectedEmotion, setSelectedEmotion] = useState(null);
@@ -103,12 +108,13 @@ const MapComponent = () => {
 
   // Fetch markers from Supabase on component mount
   useEffect(() => {
+    setIsLoading(true);
     const fetchMarkers = async () => {
       try {
         // Supabase defaults to 1000 row limit per query. Fetch in batches to get all markers.
         // Use smaller batches (1000) to work within Supabase's default limits
         const BATCH_SIZE = 1000;
-        const MAX_BATCHES = 3; // Max 100k rows for testing
+        const MAX_BATCHES = 5; // Max 100k rows for testing
         let allMarkers = [];
         
         // First, get total count to know how many batches we need
@@ -129,8 +135,8 @@ const MapComponent = () => {
           console.log(`Fetching markers batch ${batch + 1}: range(${from}, ${to})`);
           
           const { data, error } = await supabase
-            .from('markers')
-            .select('*')
+          .from('markers')
+          .select('*')
             .order('created_at', { ascending: false })
             .range(from, to);
 
@@ -167,9 +173,18 @@ const MapComponent = () => {
         } else {
           setLastAction('No markers found');
         }
+        setIsLoading(false);
+        // Fade out loading screen after a brief delay
+        setTimeout(() => {
+          setShowLoadingScreen(false);
+        }, 300);
       } catch (error) {
         console.error('Error fetching markers:', error);
         setLastAction(`Error fetching markers: ${error.message}`);
+        setIsLoading(false);
+        setTimeout(() => {
+          setShowLoadingScreen(false);
+        }, 300);
       }
     };
 
@@ -193,6 +208,7 @@ const MapComponent = () => {
       setLastAction(`Candle placed at ${position[0].toFixed(4)}, ${position[1].toFixed(4)}`);
     }
   };
+
 
   const handleCreateCandle = () => {
     // Toggle behavior: click once to open, click again to close
@@ -389,142 +405,26 @@ const MapComponent = () => {
 
   return (
     <div className="map-component-wrapper">
+      <LoadingScreen isLoading={isLoading} showLoadingScreen={showLoadingScreen} />
       {toastMessage ? <div className="toast top-center">{toastMessage}</div> : null}
-      <div className="marker-actions-panel">
-        <button onClick={async () => {
-          try {
-            // Delete all markers from Supabase
-            const { error } = await supabase
-              .from('markers')
-              .delete()
-              .neq('id', '00000000-0000-0000-0000-000000000000');
-
-            if (error) throw error;
-
-            setMarkers([]);
-            setUserCandles([]);
-            setLastAction('All markers deleted');
-          } catch (error) {
-            console.error('Error deleting all markers:', error);
-            setLastAction('Error deleting all markers');
-          }
-        }}>
-          Clear All Markers
-        </button>
-
-        <button onClick={async () => {
-          try {
-            const randomOffset = (scale = 20) => (Math.random() - 0.5) * scale;
-            const nowIso = new Date().toISOString();
-            const sampleMarker = {
-              position: [
-                38.9072 + randomOffset(),
-                -77.0369 + randomOffset()
-              ],
-              emotion: getRandomLeafEmotion(),
-              timestamp: nowIso,
-              user_timestamp: nowIso,
-              user_id: currentUserID,
-            };
-
-            console.log('Adding random marker:', sampleMarker);
-
-            const { data, error } = await supabase.rpc('create_marker_rate_limited', {
-              _emotion: sampleMarker.emotion,
-              _position: sampleMarker.position,
-              _timestamp: sampleMarker.timestamp,
-              _user_id: sampleMarker.user_id,
-              _user_timestamp: sampleMarker.user_timestamp,
-            });
-
-            if (error) {
-              console.error('Error adding random marker:', error);
-              const msg = error?.message || 'Error adding random marker';
-              setLastAction(msg);
-              
-              // Log rejections (especially rate-limit errors) to database
-              const isRateLimit = msg.toLowerCase().includes('rate limit') || 
-                                  error?.code === 'P0001' ||
-                                  error?.details?.includes('P0001');
-              
-              if (isRateLimit) {
-                console.log('Logging rejection from random marker button...', { 
-                  user_id: currentUserID, 
-                  reason: msg,
-                  payload: sampleMarker
-                });
-                
-                if (currentUserID) {
-                  supabase.rpc('log_marker_rejection', {
-                    _user_id: currentUserID,
-                    _reason: msg,
-                    _payload: {
-                      emotion: sampleMarker.emotion,
-                      position: sampleMarker.position,
-                      timestamp: sampleMarker.timestamp,
-                    },
-                  }).then(({ error: logError }) => {
-                    if (logError) {
-                      console.error('Failed to log rejection - RPC error:', logError);
-                    } else {
-                      console.log('Rejection logged successfully from random marker');
-                    }
-                  }).catch((logError) => {
-                    console.error('Exception while logging rejection:', logError);
-                  });
-                }
-              }
-              return;
-            }
-
-            if (data) {
-              const newMarker = {
-                ...data,
-                userTimestamp: new Date(data.user_timestamp),
-                isUserCandle: true
-              };
-              console.log('Random marker added successfully:', newMarker);
-              setMarkers(prev => [...prev, newMarker]);
-              setUserCandles(prev => [...prev, data.id]);
-              setLastAction('Random sample marker added');
-            }
-          } catch (error) {
-            console.error('Error in random marker button:', error);
-            setLastAction('Error adding random marker');
-          }
-        }}>
-          Add Random Sample Marker
-        </button>
-
-        <div><strong>Debug Panel</strong></div>
-        <div>User ID: {currentUserID}</div>
-        <div>Markers: {markers.length}</div>
-        <div>Last Action: {lastAction || 'No action yet'}</div>
-        <div>Popup Open: {isPopupOpen ? 'Yes' : 'No'}</div>
-        <div>Current Step: {currentStep}</div>
-        <div>Selected Emotion: {selectedEmotion || 'None'}</div>
-        <div>Temp Position: {tempPosition ? `${tempPosition[0].toFixed(4)}, ${tempPosition[1].toFixed(4)}` : 'None'}</div>
-        <div>Zoom Level: {zoomLevel}</div>
-        <div>
-          Candle Size: {(() => {
-            const baseSize = 5;
-            const scaleFactor = 0.5;
-
-            const size = Math.max(
-              2,
-              Math.min(
-                20,
-                baseSize * Math.pow(scaleFactor, 8 - zoomLevel)
-              )
-            );
-
-            return `${size.toFixed(1)}px (${size <= 4 ? 'small' : size <= 7 ? 'medium' : 'large'})`;
-          })()}
-        </div>
-
-      </div>
+      
+      <DebugPanel
+        currentUserID={currentUserID}
+        markers={markers}
+        lastAction={lastAction}
+        isPopupOpen={isPopupOpen}
+        currentStep={currentStep}
+        selectedEmotion={selectedEmotion}
+        tempPosition={tempPosition}
+        zoomLevel={zoomLevel}
+        setMarkers={setMarkers}
+        setUserCandles={setUserCandles}
+        setLastAction={setLastAction}
+        getRandomLeafEmotion={getRandomLeafEmotion}
+      />
 
       <Sidebar markers={markers}/>
+      
       <MapContainer
         ref={mapRef}
         center={defaultCenter}
@@ -543,7 +443,6 @@ const MapComponent = () => {
 
         {/* Add zoom tracking */}
         <ZoomTracker onZoomChange={setZoomLevel} />
-
         {/* Add locate button */}
         <LocateButton onLocationFound={(error) => {
           if (error) {
@@ -619,6 +518,29 @@ const MapComponent = () => {
         currentStep={currentStep}
         tempPosition={tempPosition}
       />
+
+      {/* Help Icon Button - positioned below Leaflet zoom controls */}
+      <button
+        onClick={() => window.open('/about.html', '_blank')}
+        style={{
+          position: 'fixed',
+          bottom: '30px', // Below zoom controls (10px top + 60px zoom height + 10px gap)
+          left: '10px', // Align with zoom controls
+          zIndex: 1100,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#fff',
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          padding: 0,
+          transition: 'all 0.2s ease',
+        }}
+        aria-label="Help - Learn more about this app"
+      >
+        <HelpOutlineIcon sx={{ fontSize: 35 }} />
+      </button>
     </div>
   );
 };

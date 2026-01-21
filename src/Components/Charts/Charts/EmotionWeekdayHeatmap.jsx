@@ -151,7 +151,9 @@ const EmotionWeekdayHeatmap = ({ markers }) => {
     // D3-style sequential colormap (yellow <-> purple) driven by frequency.
     // Use sqrt so low counts are still visible.
     // `interpolatePlasma` naturally goes purple -> yellow, so invert it to get yellow -> purple.
-    const colorScale = d3.scaleSequential((t) => d3.interpolatePlasma(1 - t)).domain([0, max]);
+    const colorScale = d3.scaleSequential((t) => d3.interpolateInferno(1 - t)).domain([0, max]);
+
+    
 
     rows
       .selectAll('rect.cell')

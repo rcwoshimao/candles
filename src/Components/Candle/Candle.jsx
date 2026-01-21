@@ -3,10 +3,37 @@ import { CircleMarker, Popup, Marker } from 'react-leaflet';
 import { format } from 'date-fns';
 import './Candle.css';
 import emotionParentMap from '../../lib/emotionParentMap';
+import emotions from '../../lib/emotions.json';
 
 // Get the parent emotion for any emotion (including sub-emotions)
 const getParentEmotion = (emotion) => {
   return emotionParentMap[emotion] || emotion;
+};
+
+// Get the full emotion hierarchy path (main > mid > leaf)
+const getEmotionBreadcrumb = (emotion) => {
+  // Check if it's a main emotion
+  if (emotions[emotion]) {
+    return emotion;
+  }
+  
+  // Search through the hierarchy to find the path
+  for (const [main, midLevels] of Object.entries(emotions)) {
+    // Check if it's a mid-level emotion
+    if (midLevels[emotion]) {
+      return `${main} > ${emotion}`;
+    }
+    
+    // Check if it's a leaf emotion
+    for (const [mid, leaves] of Object.entries(midLevels)) {
+      if (leaves.includes(emotion)) {
+        return `${main} > ${mid} > ${emotion}`;
+      }
+    }
+  }
+  
+  // Fallback: if not found, return just the emotion
+  return emotion;
 };
 
 // Memoize the random flicker function to avoid recalculation
@@ -101,6 +128,9 @@ const Candle = React.memo(({
 
   // Get the parent emotion for color purposes
   const parentEmotion = useMemo(() => getParentEmotion(emotion), [emotion]);
+  
+  // Get the full emotion breadcrumb path
+  const emotionBreadcrumb = useMemo(() => getEmotionBreadcrumb(emotion), [emotion]);
   
   // Get flicker animation number for this candle
   const flickerNumber = useMemo(() => getRandomFlicker(id), [id]);
@@ -225,10 +255,7 @@ const Candle = React.memo(({
     >
       <Popup>
         <div>
-          <p><strong>Emotion:</strong> {emotion}</p>
-          {emotion !== parentEmotion && (
-            <p><small><em>(Category: {parentEmotion})</em></small></p>
-          )}
+          <p> <strong> {emotionBreadcrumb} </strong></p>
           <p><small><strong>Viewed at (Your Local Time):</strong> {formattedUserTime}</small></p>
           <p><small><strong>Placed at (Creator's Time):</strong> {formattedCreatorTime}</small></p>
           {isUserCandle && (

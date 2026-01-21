@@ -22,7 +22,7 @@ const EmotionDistributionChart = ({ data }) => {
     const vals = Object.values(emotions);
     return vals.length ? Math.max(...vals) : 0;
   }, [emotions]);
-
+    
   return (
     <BaseChart title="Emotion Distribution">
       <div className="emotion-chart">

@@ -68,82 +68,14 @@ path.flicker-2 {
   }
 }
 
-/* NOTE: Candle size is set inline in `Candle.jsx` based on zoom.
-   Avoid overriding it here or zoom-based scaling will appear "broken". */
-
-/* Remove all glow effects from wrapper */
-.glow-dot-wrap {
-  filter: none;
+/* Leaflet Popup Styles for Candle Component */
+.leaflet-popup-content-wrapper {
+  background-color: rgba(36, 36, 36, 0.95);
+  color: rgba(255, 255, 255, 0.87);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  padding: 0;
 }
 
-/* Keep the unique shape for each emotion */
-.glow-dot[data-emotion="happy"] {
-  background: var(--emotion-happy) !important;
-  color: var(--emotion-happy);
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-}
-.glow-dot[data-emotion="sad"] {
-  background: var(--emotion-sad) !important;
-  color: var(--emotion-sad);
-  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-}
-.glow-dot[data-emotion="disgusted"] {
-  background: var(--emotion-disgusted) !important;
-  color: var(--emotion-disgusted);
-  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-}
-.glow-dot[data-emotion="angry"] {
-  background: var(--emotion-angry) !important;
-  color: var(--emotion-angry);
-  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
-}
-.glow-dot[data-emotion="surprised"] {
-  background: var(--emotion-surprised) !important;
-  color: var(--emotion-surprised);
-  clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);
-}
-.glow-dot[data-emotion="bad"] {
-  background: var(--emotion-bad) !important;
-  color: var(--emotion-bad);
-  clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%);
-}
-.glow-dot[data-emotion="fearful"] {
-  background: var(--emotion-fearful) !important;
-  color: var(--emotion-fearful);
-  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-}
-
-/* Override clip-path styles for low zoom levels (zoom <= 3) */
-.glow-dot[data-zoom="0"],
-.glow-dot[data-zoom="1"],
-.glow-dot[data-zoom="2"],
-.glow-dot[data-zoom="3"] {
-  clip-path: none !important;
-  border-radius: 50% !important;
-}
-
-/* When markers come close */
-.candle-marker.merged {
-  width: 18px;
-  height: 18px;
-}
-
-/* Button styles */
-.cancel-button {
-  margin-left: 8px;
-}
-
-.delete-button {
-  background-color: #938884;
-  color: rgb(0, 0, 0);
-  border: none;
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.delete-button:hover {
-  color: white; 
-  background-color: #232121;
-}

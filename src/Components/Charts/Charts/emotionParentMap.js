@@ -1,3 +1,3 @@
 import emotionParentMap from '../../../lib/emotionParentMap';
 
-export default emotionParentMap;
+export default emotionParentMap; 
