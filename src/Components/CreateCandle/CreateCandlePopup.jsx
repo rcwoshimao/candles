@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import emotions from '../../lib/emotions.json';
-import './CreateCandlePopup.css'; 
+import './CreateCandlePopup.css';
 
 const CreateCandlePopup = ({
   isOpen,
@@ -117,28 +117,33 @@ const CreateCandlePopup = ({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {selectStep === 1 && (
             <>
-              <h3 style={{ marginBottom: 10 }}>How are you feeling? </h3>
+              <h3 style={{ marginBottom: 10 }}>How are you feeling?</h3>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                {mainOptions.map((emotion) => (
-                  <button
-                    key={emotion}
-                    onClick={() => {
-                      setSelectedMain(emotion);
-                      setSelectedMid(null);
-                      setSelectedLeaf(null);
-                    }}
-                    style={{
-                      padding: '6px 10px',
-                      border: '1px solid #ccc',
-                      borderRadius: 4,
-                      background: selectedMain === emotion ? 'white' : 'transparent',
-                      color: selectedMain === emotion ? 'black' : 'white',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {emotion}
-                  </button>
-                ))}
+                {mainOptions.map((emotion) => {
+                  const isSelected = selectedMain === emotion;
+                  return (
+                    <button
+                      key={emotion}
+                      onClick={() => {
+                        setSelectedMain(emotion);
+                        setSelectedMid(null);
+                        setSelectedLeaf(null);
+                      }}
+                      style={{
+                        padding: '6px 10px',
+                        border: '1px solid #ccc',
+                        borderRadius: 4,
+                        background: isSelected ? `var(--emotion-${emotion})` : 'transparent',
+                        color: isSelected ? 'black' : 'white',
+                        cursor: 'pointer',
+                        fontWeight: isSelected ? 600 : 400,
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      {emotion}
+                    </button>
+                  );
+                })}
               </div>
             </>
           )}
