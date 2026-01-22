@@ -36,6 +36,7 @@ const MapClickHandler = ({ onMapClick, currentStep }) => {
   useMapEvents({
     click: (e) => {
       console.log('Map click event triggered, current step:', currentStep);
+      // Allow map clicks when in step 2 (placement mode)
       if (currentStep === 2) {
         const { lat, lng } = e.latlng;
         console.log('Setting temp position:', [lat, lng]);
@@ -219,15 +220,21 @@ const MapComponent = () => {
     setSelectedEmotion(emotion);
   };
 
-  const handlePlaceCandle = () => {
-    console.log('Place candle clicked, selected emotion:', selectedEmotion);
-    if (!selectedEmotion) {
+  const handlePlaceCandle = (emotion = null) => {
+    // Use provided emotion or fall back to selectedEmotion
+    const emotionToUse = emotion || selectedEmotion;
+    console.log('Place candle clicked, selected emotion:', emotionToUse);
+    if (!emotionToUse) {
       console.log('No emotion selected, cannot proceed');
       return;
     }
     console.log('Moving to step 2, resetting temp position');
     setCurrentStep(2);
     setTempPosition(null);
+    // Ensure emotion is set if it wasn't already
+    if (emotion && emotion !== selectedEmotion) {
+      setSelectedEmotion(emotion);
+    }
   };
 
   const handleBackToEmotionStep = () => {
