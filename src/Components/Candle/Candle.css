@@ -12,15 +12,6 @@
   box-shadow: none;
 }
 
-.glow-dot {
-  border-radius: 50%;
-  will-change: opacity;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  pointer-events: auto;
-  box-shadow: none !important;
-  border: none;
-}
 
 /* Simple on/off flicker animations - slower for better performance */
 @keyframes flicker1 {
@@ -33,10 +24,6 @@
   45% { opacity: 0.25; }
   55% { opacity: 0.25; }
 }
-
-/* Flicker assignments for old divIcon - slower animations */
-.glow-dot[data-flicker="1"] { animation: flicker1 6s ease-in-out infinite; }
-.glow-dot[data-flicker="2"] { animation: flicker2 7s ease-in-out infinite; }
 
 /* Flicker assignments for CircleMarker SVG paths - optimized for performance */
 path[data-flicker="1"],

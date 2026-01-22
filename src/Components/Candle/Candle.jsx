@@ -92,18 +92,6 @@ const getEmotionColor = (() => {
       colorCache.set(emotion, resolvedColor);
       return resolvedColor;
     }
-    
-    // Fallback colors if window is undefined (SSR)
-    const colorMap = {
-      'happy': '#ffd24d',
-      'sad': '#6b74ff',
-      'disgusted': '#44de70',
-      'angry': '#ff5a52',
-      'surprised': '#33e0d7',
-      'bad': '#9a76ff',
-      'fearful': '#ff77e3',
-    };
-    return colorMap[emotion] || '#999';
   };
   
   return getColor;
@@ -115,7 +103,6 @@ const Candle = React.memo(({
   emotion,
   handleDelete,
   isTemp,
-  setTempMarker,
   handleSave,
   userTimestamp,
   timestamp,

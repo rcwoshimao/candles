@@ -283,7 +283,7 @@ const CreateCandlePopup = ({
               fontSize: '14px',
               lineHeight: '1.5',
             }}>
-              Click anywhere on the map. When ready to place, click button
+              Choose a spot on the map. When ready, click Place Candle. 
             </div>
             <button
               onClick={onConfirmPlacement}
