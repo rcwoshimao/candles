@@ -39,3 +39,10 @@
   gap: 8px;
   margin-top: 10px;
 }
+
+/* Ensure radial menu appears above everything */
+:global([class*="radial-menu"]),
+:global([class*="RadialMenu"]) {
+  z-index: 5000 !important;
+  position: fixed !important;
+}

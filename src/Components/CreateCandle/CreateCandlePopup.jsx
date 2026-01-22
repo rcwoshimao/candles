@@ -1,4 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { Menu, MenuItem } from '@spaceymonk/react-radial-menu';
 import emotions from '../../lib/emotions.json';
 import './CreateCandlePopup.css';
 
@@ -16,6 +18,8 @@ const CreateCandlePopup = ({
   const [selectedMain, setSelectedMain] = useState(null);
   const [selectedMid, setSelectedMid] = useState(null);
   const [selectedLeaf, setSelectedLeaf] = useState(null);
+  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+  const menuContainerRef = useRef(null);
 
   useEffect(() => {
     if (!isOpen) {
@@ -23,8 +27,44 @@ const CreateCandlePopup = ({
       setSelectedMain(null);
       setSelectedMid(null);
       setSelectedLeaf(null);
+      setMenuPosition({ x: 0, y: 0 }); // Reset position when closed
     }
   }, [isOpen]);
+
+  // Calculate center position of the menu container when it's ready
+  useEffect(() => {
+    if (isOpen && selectStep === 1 && menuContainerRef.current) {
+      const updatePosition = () => {
+        if (menuContainerRef.current) {
+          const rect = menuContainerRef.current.getBoundingClientRect();
+          // Center the menu within the container using dynamic width/height
+          const newPos = {
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2,
+          };
+          setMenuPosition(newPos);
+        }
+      };
+      
+      // Update immediately
+      updatePosition();
+      
+      // Also update after a short delay to ensure layout is complete
+      const timer = setTimeout(updatePosition, 100);
+      
+      // Add window resize listener to recalculate position
+      const handleResize = () => {
+        updatePosition();
+      };
+      
+      window.addEventListener('resize', handleResize);
+      
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('resize', handleResize);
+      };
+    }
+  }, [isOpen, selectStep]);
 
   const mainOptions = useMemo(() => Object.keys(emotions), []);
   const midOptions = useMemo(
@@ -118,32 +158,77 @@ const CreateCandlePopup = ({
           {selectStep === 1 && (
             <>
               <h3 style={{ marginBottom: 10 }}>How are you feeling?</h3>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                {mainOptions.map((emotion) => {
-                  const isSelected = selectedMain === emotion;
-                  return (
-                    <button
-                      key={emotion}
-                      onClick={() => {
-                        setSelectedMain(emotion);
-                        setSelectedMid(null);
-                        setSelectedLeaf(null);
-                      }}
-                      style={{
-                        padding: '6px 10px',
-                        border: '1px solid #ccc',
-                        borderRadius: 4,
-                        background: isSelected ? `var(--emotion-${emotion})` : 'transparent',
-                        color: isSelected ? 'black' : 'white',
-                        cursor: 'pointer',
-                        fontWeight: isSelected ? 600 : 400,
-                        transition: 'all 0.2s ease',
-                      }}
-                    >
-                      {emotion}
-                    </button>
-                  );
-                })}
+              <div
+                ref={(el) => {
+                  if (menuContainerRef.current === el) return; // Prevent infinite loop
+                  menuContainerRef.current = el;
+                  if (el && isOpen && selectStep === 1) {
+                    // Calculate position immediately when ref is set (synchronous)
+                    const rect = el.getBoundingClientRect();
+                    const newPos = {
+                      x: rect.left + rect.width / 2,
+                      y: rect.top + rect.height / 2,
+                    };
+                    // Only update if position changed significantly (avoid infinite loops)
+                    setMenuPosition(prev => {
+                      // Always update if prev is (0,0) (initial state)
+                      if (prev.x === 0 && prev.y === 0) {
+                        return newPos;
+                      }
+                      const threshold = 10; // Only update if change is significant
+                      if (Math.abs(prev.x - newPos.x) > threshold || Math.abs(prev.y - newPos.y) > threshold) {
+                        return newPos;
+                      }
+                      return prev;
+                    });
+                  }
+                }}
+                style={{ 
+                  width: '100%', 
+                  height: '300px', 
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                onClick={() => {
+                  // Close menu when clicking outside (but don't prevent selection)
+                }}
+              >
+                {createPortal(
+                  <Menu
+                    centerX={menuPosition.x}
+                    centerY={menuPosition.y}
+                    innerRadius={75}
+                    outerRadius={150}
+                    show={isOpen && selectStep === 1}
+                    animation={["fade", "scale"]}
+                    animationTimeout={150}
+                    drawBackground
+                    style={{
+                      zIndex: 5000,
+                      position: 'fixed',
+                    }}
+                  >
+                    {mainOptions.map((emotion) => (
+                      <MenuItem
+                        key={emotion}
+                        onItemClick={(event, index, data) => {
+                          setSelectedMain(data);
+                          setSelectedMid(null);
+                          setSelectedLeaf(null);
+                        }}
+                        data={emotion}
+                        style={{
+                          color: `var(--emotion-${emotion})`,
+                        }}
+                      >
+                        {emotion}
+                      </MenuItem>
+                    ))}
+                  </Menu>,
+                  document.body
+                )}
               </div>
             </>
           )}
