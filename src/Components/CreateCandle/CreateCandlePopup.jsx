@@ -139,13 +139,43 @@ const CreateCandlePopup = ({
 
 
   return (
-    <div className="create-candle-panel" ref={panelRef}>
+    <div 
+      className="create-candle-panel" 
+      ref={panelRef}
+      style={{
+        height: selectedLeaf ? 'auto' : '340px',
+        minHeight: selectedLeaf ? 'auto' : '340px',
+      }}
+    >
       <div className="create-candle-top-bar">
-        {!selectedLeaf && <div className="create-candle-breadcrumb">{breadcrumb || ' '}</div>}
+        {!selectedLeaf && <div className="create-candle-breadcrumb" style={{ fontSize: '14px' }}>{breadcrumb || ' '}</div>}
+        {selectedLeaf && <div style={{ flex: 1 }}></div>}
         <button
-          onClick={onClose}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (onClose) {
+              onClose();
+            }
+          }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
           aria-label="Close"
-          style={{ padding: '2px 10px', background: 'transparent', color: 'white', cursor: 'pointer' }}
+          style={{ 
+            padding: '2px 10px', 
+            background: 'transparent', 
+            color: 'white', 
+            cursor: 'pointer',
+            border: 'none',
+            fontSize: '20px',
+            lineHeight: '1',
+            flexShrink: 0,
+            position: 'relative',
+            zIndex: 100,
+            pointerEvents: 'auto',
+          }}
         >
           ×
         </button>
@@ -155,10 +185,13 @@ const CreateCandlePopup = ({
         flexDirection: 'column', 
         gap: 8,
         width: '100%', 
-        height: 'calc(360px - 12px - 12px - 40px)',
+        height: selectedLeaf ? 'auto' : 'calc(340px - 12px - 12px - 40px)',
+        minHeight: selectedLeaf ? 'auto' : 'calc(340px - 12px - 12px - 40px)',
         position: 'relative',
         alignItems: 'center',
         justifyContent: 'center',
+        padding: selectedLeaf ? '20px 12px' : '0',
+        overflow: 'hidden',
       }}>
         {!selectedLeaf && isOpen && pieChartData.length > 0 && (
           <div
@@ -169,6 +202,8 @@ const CreateCandlePopup = ({
               transform: 'translate(-50%, -50%)',
               width: '340px',
               height: '340px',
+              zIndex: 1,
+              pointerEvents: 'auto',
             }}
           >
             <PieChart
@@ -177,8 +212,8 @@ const CreateCandlePopup = ({
                           id: 'emotion-wheel',
                           startAngle: 0,
                           endAngle: 360,
-                          innerRadius: 75,
-                          outerRadius: 170,
+                          innerRadius: 56,
+                          outerRadius: 138,
                           paddingAngle: 2,
                           cornerRadius: 3,
                           data: pieChartData,
@@ -201,7 +236,7 @@ const CreateCandlePopup = ({
                           cursor: 'pointer',
                         },
                         [`& .${pieArcLabelClasses.root}`]: {
-                          fill: 'white',
+                          fill: 'black',
                           fontSize: 14,
                           fontWeight: '500',
                           pointerEvents: 'none',
@@ -225,8 +260,8 @@ const CreateCandlePopup = ({
                       }}
                     >
                       {navigationLevel === 'parent' && 'How are you feeling?'}
-                      {navigationLevel === 'mid' && selectedMain && `Choose ${selectedMain} type`}
-                      {navigationLevel === 'leaf' && selectedMid && `Select feeling`}
+                      {navigationLevel === 'mid' && selectedMain && `Describe it in detail.`}
+                      {navigationLevel === 'leaf' && selectedMid && `Describe it in detail.`}
             </div>
           </div>
         )}
@@ -237,7 +272,6 @@ const CreateCandlePopup = ({
             alignItems: 'center',
             justifyContent: 'center',
             gap: 24,
-            height: '100%',
             width: '100%',
           }}>
             <div className="create-candle-breadcrumb" style={{ fontSize: '20px', marginBottom: '8px' }}>
@@ -286,11 +320,12 @@ const CreateCandlePopup = ({
             onClick={handleLeft}
             style={{
               position: 'absolute',
-              bottom: '12px',
-              left: '12px',
+              bottom: '0px',
+              left: '0px',
+              zIndex: '5002'
             }}
           >
-            ← Back
+            ← 
           </button>
         )}
       </div>
