@@ -114,7 +114,7 @@ const MapComponent = () => {
         // Supabase defaults to 1000 row limit per query. Fetch in batches to get all markers.
         // Use smaller batches (1000) to work within Supabase's default limits
         const BATCH_SIZE = 1000;
-        const MAX_BATCHES = 5; // Max 100k rows for testing
+        const MAX_BATCHES = 1; // Max 100k rows for testing
         let allMarkers = [];
         
         // First, get total count to know how many batches we need
@@ -190,16 +190,6 @@ const MapComponent = () => {
 
     fetchMarkers();
   }, []);
-
-  // Add debug logging for markers
-  useEffect(() => {
-    console.log('Markers updated:', markers.map(m => ({
-      id: m.id,
-      emotion: m.emotion,
-      position: m.position,
-      isUserCandle: m.isUserCandle
-    })));
-  }, [markers]);
 
   const handleMapClick = (position) => {
     console.log('handleMapClick called with position:', position);
@@ -457,14 +447,7 @@ const MapComponent = () => {
         />
 
         {/* Render permanent markers with debug logging */}
-        {markers.map(marker => {
-          console.log('Rendering marker:', {
-            id: marker.id,
-            emotion: marker.emotion,
-            position: marker.position,
-            isUserCandle: marker.isUserCandle
-          });
-          
+        {markers.map(marker => {          
           return marker && (
             <Candle
               key={marker.id}
@@ -480,13 +463,6 @@ const MapComponent = () => {
           );
         })}
 
-        {/* Debug log for temporary candle rendering */}
-        {console.log('Checking temp candle render conditions:', {
-          currentStep,
-          hasTempPosition: !!tempPosition,
-          selectedEmotion,
-          shouldRender: currentStep === 2 && !!tempPosition && !!selectedEmotion
-        })}
 
         {/* Render temporary candle */}
         {currentStep === 2 && tempPosition && selectedEmotion && (

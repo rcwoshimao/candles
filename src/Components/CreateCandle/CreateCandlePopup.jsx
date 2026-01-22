@@ -20,6 +20,7 @@ const CreateCandlePopup = ({
   const [selectedLeaf, setSelectedLeaf] = useState(null);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
   const menuContainerRef = useRef(null);
+  const panelRef = useRef(null);
 
   useEffect(() => {
     if (!isOpen) {
@@ -35,12 +36,12 @@ const CreateCandlePopup = ({
   useEffect(() => {
     if (isOpen && selectStep === 1 && menuContainerRef.current) {
       const updatePosition = () => {
-        if (menuContainerRef.current) {
-          const rect = menuContainerRef.current.getBoundingClientRect();
-          // Center the menu within the container using dynamic width/height
+        if (menuContainerRef.current && panelRef.current) {
+          // Use the panel's center for more accurate positioning
+          const panelRect = panelRef.current.getBoundingClientRect();
           const newPos = {
-            x: rect.left + rect.width / 2,
-            y: rect.top + rect.height / 2,
+            x: panelRect.left + panelRect.width / 2,
+            y: panelRect.top + panelRect.height / 2,
           };
           setMenuPosition(newPos);
         }
@@ -67,6 +68,35 @@ const CreateCandlePopup = ({
   }, [isOpen, selectStep]);
 
   const mainOptions = useMemo(() => Object.keys(emotions), []);
+
+  // Apply colors to radial menu SVG paths
+  useEffect(() => {
+    if (isOpen && selectStep === 1 && mainOptions.length > 0) {
+      // Wait for menu to render, then apply colors
+      const applyColors = () => {
+        const paths = document.querySelectorAll('path.__rrm-base');
+        if (paths.length === mainOptions.length) {
+          paths.forEach((path, index) => {
+            const emotion = mainOptions[index];
+            const color = getComputedStyle(document.documentElement)
+              .getPropertyValue(`--emotion-${emotion}`)
+              .trim();
+            if (color) {
+              path.setAttribute('fill', color);
+              path.style.fill = color;
+            }
+          });
+        }
+      };
+      
+      // Try immediately and after a short delay
+      applyColors();
+      const colorTimer = setTimeout(applyColors, 200);
+      
+      return () => clearTimeout(colorTimer);
+    }
+  }, [isOpen, selectStep, mainOptions]);
+
   const midOptions = useMemo(
     () => (selectedMain ? Object.keys(emotions[selectedMain] || {}) : []),
     [selectedMain]
@@ -141,7 +171,7 @@ const CreateCandlePopup = ({
   };
 
   return (
-    <div className="create-candle-panel">
+    <div className="create-candle-panel" ref={panelRef}>
       <div className="create-candle-top-bar">
         <div className="create-candle-breadcrumb">{breadcrumb || ' '}</div>
         <button
@@ -157,18 +187,30 @@ const CreateCandlePopup = ({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {selectStep === 1 && (
             <>
-              <h3 style={{ marginBottom: 10 }}>How are you feeling?</h3>
               <div
                 ref={(el) => {
                   if (menuContainerRef.current === el) return; // Prevent infinite loop
                   menuContainerRef.current = el;
                   if (el && isOpen && selectStep === 1) {
                     // Calculate position immediately when ref is set (synchronous)
-                    const rect = el.getBoundingClientRect();
-                    const newPos = {
-                      x: rect.left + rect.width / 2,
-                      y: rect.top + rect.height / 2,
-                    };
+                    // Use the panel's center for more accurate positioning
+                    const panelRect = panelRef.current?.getBoundingClientRect();
+                    const containerRect = el.getBoundingClientRect();
+                    
+                    let newPos;
+                    if (panelRect) {
+                      // Center based on the panel's dimensions
+                      newPos = {
+                        x: panelRect.left + panelRect.width / 2,
+                        y: panelRect.top + panelRect.height / 2,
+                      };
+                    } else {
+                      // Fallback to container rect
+                      newPos = {
+                        x: containerRect.left + containerRect.width / 2,
+                        y: containerRect.top + containerRect.height / 2,
+                      };
+                    }
                     // Only update if position changed significantly (avoid infinite loops)
                     setMenuPosition(prev => {
                       // Always update if prev is (0,0) (initial state)
@@ -185,7 +227,7 @@ const CreateCandlePopup = ({
                 }}
                 style={{ 
                   width: '100%', 
-                  height: '300px', 
+                  height: 'calc(360px - 12px - 12px - 40px)', // Panel height minus padding (top+bottom) minus top bar height
                   position: 'relative',
                   display: 'flex',
                   alignItems: 'center',
@@ -196,20 +238,21 @@ const CreateCandlePopup = ({
                 }}
               >
                 {createPortal(
-                  <Menu
-                    centerX={menuPosition.x}
-                    centerY={menuPosition.y}
-                    innerRadius={75}
-                    outerRadius={150}
-                    show={isOpen && selectStep === 1}
-                    animation={["fade", "scale"]}
-                    animationTimeout={150}
-                    drawBackground
-                    style={{
-                      zIndex: 5000,
-                      position: 'fixed',
-                    }}
-                  >
+                  <>
+                    <Menu
+                      centerX={menuPosition.x}
+                      centerY={menuPosition.y}
+                      innerRadius={75}
+                      outerRadius={170}
+                      show={isOpen && selectStep === 1}
+                      animation={["fade"]}
+                      animationTimeout={0}
+                      drawBackground
+                      style={{
+                        zIndex: 5000,
+                        position: 'fixed',
+                      }}
+                    >
                     {mainOptions.map((emotion) => (
                       <MenuItem
                         key={emotion}
@@ -226,7 +269,29 @@ const CreateCandlePopup = ({
                         {emotion}
                       </MenuItem>
                     ))}
-                  </Menu>,
+                  </Menu>
+                  {/* Center text overlay */}
+                  {isOpen && selectStep === 1 && menuPosition.x !== 0 && menuPosition.y !== 0 && (
+                    <div
+                      style={{
+                        position: 'fixed',
+                        left: `${menuPosition.x}px`,
+                        top: `${menuPosition.y}px`,
+                        transform: 'translate(-50%, -50%)',
+                        zIndex: 5001,
+                        pointerEvents: 'none',
+                        textAlign: 'center',
+                        color: 'white',
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        width: "100px",
+                        margin: '5px'
+                      }}
+                    >
+                      How are you feeling?
+                    </div>
+                  )}
+                  </>,
                   document.body
                 )}
               </div>

@@ -14,7 +14,8 @@
   color: white;
   padding: 12px;
   border-radius: 8px;
-  width: 320px;
+  height: 360px; 
+  width: 360px;
 }
 
 .create-candle-top-bar {
@@ -46,3 +47,6 @@
   z-index: 5000 !important;
   position: fixed !important;
 }
+
+
+
