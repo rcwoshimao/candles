@@ -15,6 +15,7 @@ const CreateCandlePopup = ({
   onConfirmPlacement,
   tempPosition,
   sameEmotionCount,
+  onOpenSidebar,
 }) => {
   const [selectedMain, setSelectedMain] = useState(null);
   const [selectedMid, setSelectedMid] = useState(null);
@@ -325,7 +326,7 @@ const CreateCandlePopup = ({
               fontSize: '14px',
               lineHeight: '1.5',
             }}>
-              Choose a spot on the map. When ready, click Place Candle. 
+              Choose a spot on the map. Long click fire to place candle.
             </div>
             <HoldToConfirmButton
               onConfirm={onConfirmPlacement}
@@ -372,12 +373,37 @@ const CreateCandlePopup = ({
                   padding: '12px',
                   background: 'rgba(255, 255, 255, 0.1)',
                   borderRadius: '8px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
                 }}
               >
-                {sameEmotionCount === 1 
-                  ? 'You are the first person to feel this way in the last 24 hours!'
-                  : `${sameEmotionCount} ${sameEmotionCount === 2 ? 'person has' : 'people have'} felt this way in the last 24 hours.`
-                }
+                <div>
+                  {sameEmotionCount === 1 
+                    ? 'You are the first person to feel this way in the last 24 hours!'
+                    : `${sameEmotionCount} ${sameEmotionCount === 2 ? 'person has' : 'people have'} felt this way in the last 24 hours.`
+                  }
+                </div>
+                {onOpenSidebar && (
+                  <div
+                    onClick={onOpenSidebar}
+                    style={{
+                      fontSize: '12px',
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      cursor: 'pointer',
+                      textDecoration: 'underline',
+                      marginTop: '4px',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.9)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)';
+                    }}
+                  >
+                    View detailed charts in the sidebar
+                  </div>
+                )}
               </motion.div>
             )}
           </motion.div>

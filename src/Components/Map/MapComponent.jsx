@@ -76,6 +76,7 @@ const ZoomTracker = ({ onZoomChange }) => {
 
 const MapComponent = () => {
   const mapRef = useRef();
+  const sidebarRef = useRef(null);
   const [markers, setMarkers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showLoadingScreen, setShowLoadingScreen] = useState(true);
@@ -439,7 +440,7 @@ const MapComponent = () => {
         getRandomLeafEmotion={getRandomLeafEmotion}
       />
 
-      <Sidebar markers={markers}/>
+      <Sidebar ref={sidebarRef} markers={markers}/>
       
       <MapContainer
         ref={mapRef}
@@ -520,6 +521,7 @@ const MapComponent = () => {
         currentStep={currentStep}
         tempPosition={tempPosition}
         sameEmotionCount={sameEmotionCount}
+        onOpenSidebar={() => sidebarRef.current?.open()}
       />
 
       {/* Help Icon Button - positioned below Leaflet zoom controls */}
