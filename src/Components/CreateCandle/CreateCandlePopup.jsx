@@ -1,6 +1,10 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { PieChart, pieArcClasses, pieArcLabelClasses } from '@mui/x-charts/PieChart';
+import { motion } from 'framer-motion';
 import emotions from '../../lib/emotions.json';
+import HoldToConfirmButton from './HoldToConfirmButton';
+import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import './CreateCandlePopup.css';
 
 const CreateCandlePopup = ({
@@ -9,12 +13,13 @@ const CreateCandlePopup = ({
   onEmotionSelect,
   onPlaceCandle,
   onConfirmPlacement,
-  currentStep,
   tempPosition,
+  sameEmotionCount,
 }) => {
   const [selectedMain, setSelectedMain] = useState(null);
   const [selectedMid, setSelectedMid] = useState(null);
   const [selectedLeaf, setSelectedLeaf] = useState(null);
+  const [isConfirmed, setIsConfirmed] = useState(false);
   const panelRef = useRef(null);
 
   // Progressive expansion navigation state
@@ -26,8 +31,45 @@ const CreateCandlePopup = ({
       setSelectedMid(null);
       setSelectedLeaf(null);
       setNavigationLevel('parent'); // Reset navigation level
+      setIsConfirmed(false);
+      prevSameEmotionCountRef.current = null;
     }
   }, [isOpen]);
+
+  // Track when candle is confirmed - only show confirmation screen after placement succeeds
+  const prevSameEmotionCountRef = useRef(null);
+  const hasShownConfirmationRef = useRef(false);
+  
+  useEffect(() => {
+    // Reset confirmation tracking when popup closes or emotion changes
+    if (!isOpen || !selectedLeaf) {
+      hasShownConfirmationRef.current = false;
+      prevSameEmotionCountRef.current = null;
+    }
+  }, [isOpen, selectedLeaf]);
+
+  useEffect(() => {
+    // Only show confirmation when sameEmotionCount changes from null to a number
+    // This indicates the candle was just placed successfully
+    // And we haven't already shown the confirmation for this placement
+    if (
+      sameEmotionCount !== null && 
+      prevSameEmotionCountRef.current === null && 
+      !isConfirmed && 
+      !hasShownConfirmationRef.current
+    ) {
+      setIsConfirmed(true);
+      hasShownConfirmationRef.current = true;
+      // Keep confirmation screen visible for 3 seconds
+      const timer = setTimeout(() => {
+        setIsConfirmed(false);
+      }, 3000);
+      prevSameEmotionCountRef.current = sameEmotionCount;
+      return () => clearTimeout(timer);
+    } else if (sameEmotionCount !== null) {
+      prevSameEmotionCountRef.current = sameEmotionCount;
+    }
+  }, [sameEmotionCount, isConfirmed, isOpen, selectedLeaf]);
 
 
   const mainOptions = useMemo(() => Object.keys(emotions), []);
@@ -130,7 +172,7 @@ const CreateCandlePopup = ({
     }
   };
 
-  const canGoLeft = navigationLevel !== 'parent' || selectedLeaf;
+  const canGoLeft = (navigationLevel !== 'parent' || selectedLeaf) && !isConfirmed;
 
   if (!isOpen) return null;
 
@@ -265,7 +307,7 @@ const CreateCandlePopup = ({
             </div>
           </div>
         )}
-        {selectedLeaf && (
+        {selectedLeaf && !isConfirmed && (
           <div style={{
             display: 'flex',
             flexDirection: 'column',
@@ -274,7 +316,7 @@ const CreateCandlePopup = ({
             gap: 24,
             width: '100%',
           }}>
-            <div className="create-candle-breadcrumb" style={{ fontSize: '20px', marginBottom: '8px' }}>
+            <div className="create-candle-breadcrumb" style={{ fontSize: '20px', marginBottom: '10px' }}>
               {breadcrumb}
             </div>
             <div style={{
@@ -285,48 +327,60 @@ const CreateCandlePopup = ({
             }}>
               Choose a spot on the map. When ready, click Place Candle. 
             </div>
-            <button
-              onClick={onConfirmPlacement}
+            <HoldToConfirmButton
+              onConfirm={onConfirmPlacement}
               disabled={!tempPosition}
-              style={{
-                padding: '12px 24px',
-                fontSize: '16px',
-                fontWeight: '600',
-                background: tempPosition ? 'white' : 'rgba(255, 255, 255, 0.5)',
-                color: tempPosition ? '#111' : 'rgba(255, 255, 255, 0.7)',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: tempPosition ? 'pointer' : 'not-allowed',
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                if (tempPosition) {
-                  e.currentTarget.style.transform = 'scale(1.05)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(255, 255, 255, 0.3)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1)';
-                e.currentTarget.style.boxShadow = 'none';
-              }}
             >
-              Place candle
-            </button>
+              <LocalFireDepartmentIcon sx={{ fontSize: 50 }} />
+            </HoldToConfirmButton>
           </div>
         )}
-        {canGoLeft && (
-          <button 
-            className="nav-btn" 
-            onClick={handleLeft}
+        {selectedLeaf && isConfirmed && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, ease: [0.42, 0, 1, 1] }}
             style={{
-              position: 'absolute',
-              bottom: '0px',
-              left: '0px',
-              zIndex: '5002'
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 24,
+              width: '100%',
             }}
           >
-            ← 
-          </button>
+            <div className="create-candle-breadcrumb" style={{ fontSize: '20px', marginBottom: '10px' }}>
+              {breadcrumb}
+            </div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, ease: [0.42, 0, 1, 1], delay: 0.1 }}
+            >
+              <CheckCircleIcon sx={{ fontSize: 60, color: '#4caf50' }} />
+            </motion.div>
+            {sameEmotionCount !== null && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, ease: [0.42, 0, 1, 1], delay: 0.2 }}
+                style={{
+                  textAlign: 'center',
+                  color: 'rgba(255, 255, 255, 0.9)',
+                  fontSize: '16px',
+                  fontWeight: '500',
+                  padding: '12px',
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  borderRadius: '8px',
+                }}
+              >
+                {sameEmotionCount === 1 
+                  ? 'You are the first person to feel this way in the last 24 hours!'
+                  : `${sameEmotionCount} ${sameEmotionCount === 2 ? 'person has' : 'people have'} felt this way in the last 24 hours.`
+                }
+              </motion.div>
+            )}
+          </motion.div>
         )}
       </div>
     </div>

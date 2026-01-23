@@ -90,6 +90,7 @@ const MapComponent = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [toastMessage, setToastMessage] = useState('');
+  const [sameEmotionCount, setSameEmotionCount] = useState(null);
   const toastTimerRef = useRef(null);
 
   const showToast = (message) => {
@@ -135,7 +136,7 @@ const MapComponent = () => {
           
           console.log(`Fetching markers batch ${batch + 1}: range(${from}, ${to})`);
           
-          const { data, error } = await supabase
+        const { data, error } = await supabase
           .from('markers')
           .select('*')
             .order('created_at', { ascending: false })
@@ -213,6 +214,7 @@ const MapComponent = () => {
     setCurrentStep(1);
     setSelectedEmotion(null);
     setTempPosition(null);
+    setSameEmotionCount(null);
   };
 
   const handleEmotionSelect = (emotion) => {
@@ -280,10 +282,26 @@ const MapComponent = () => {
         setUserCandles(prev => [...prev, data.id]);
         setLastAction('Candle placed successfully');
 
+        // Query for candles with same emotion in the last hour
+        const oneHourAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        const { count, error: countError } = await supabase
+          .from('markers')
+          .select('*', { count: 'exact', head: true })
+          .eq('emotion', selectedEmotion)
+          .gte('created_at', oneHourAgo);
+
+        if (!countError && count !== null) {
+          setSameEmotionCount(count);
+        } else {
+          console.error('Error fetching same emotion count:', countError);
+          setSameEmotionCount(0);
+        }
+
         // Clean up ONLY on success
         setTempPosition(null);
-        setSelectedEmotion(null);
-        setIsPopupOpen(false);
+        // Don't reset selectedEmotion here - keep it to show the count
+        // Don't close popup automatically - let user close it manually
+        // setIsPopupOpen(false);
         setCurrentStep(1);
       }
     } catch (error) {
@@ -364,6 +382,7 @@ const MapComponent = () => {
     setSelectedEmotion(null);
     setIsPopupOpen(false);
     setCurrentStep(1);
+    setSameEmotionCount(null);
   };
 
   const handleDelete = async (idToDelete) => {
@@ -454,7 +473,7 @@ const MapComponent = () => {
         />
 
         {/* Render permanent markers with debug logging */}
-        {markers.map(marker => {          
+        {markers.map(marker => {
           return marker && (
             <Candle
               key={marker.id}
@@ -500,6 +519,7 @@ const MapComponent = () => {
         onConfirmPlacement={handleConfirmPlacement}
         currentStep={currentStep}
         tempPosition={tempPosition}
+        sameEmotionCount={sameEmotionCount}
       />
 
       {/* Help Icon Button - positioned below Leaflet zoom controls */}
