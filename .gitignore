@@ -13,6 +13,12 @@ dist
 dist-ssr
 *.local
 
+# Local npm cache workaround (should never be committed)
+.npm-cache/
+
+# Bundle analyzer output
+stats.html
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -4,8 +4,17 @@ import tailwindcss from '@tailwindcss/vite'
 import { visualizer } from 'rollup-plugin-visualizer';
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), tailwindcss(),visualizer({ open: true }),],
+export default defineConfig(() => {
+  // Only generate `stats.html` when explicitly requested:
+  //   ANALYZE=true npm run build
+  const analyze = process.env.ANALYZE === 'true';
+
+  return {
+    plugins: [
+      react(),
+      tailwindcss(),
+      ...(analyze ? [visualizer({ open: true, filename: 'stats.html' })] : []),
+    ],
   build: {
     rollupOptions: {
       input: {
@@ -14,4 +23,5 @@ export default defineConfig({
       },
     },
   },
+  };
 })
