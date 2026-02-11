@@ -149,14 +149,14 @@ const Candle = React.memo(({
     
     try {
       userTime = format(new Date(userTimestamp), 'yyyy-MM-dd HH:mm:ss');
-    } catch (e) {
-      console.warn('Invalid userTimestamp:', userTimestamp);
+    } catch (err) {
+      console.warn('Invalid userTimestamp:', userTimestamp, err);
     }
     
     try {
       creatorTime = format(new Date(timestamp), 'yyyy-MM-dd HH:mm:ss');
-    } catch (e) {
-      console.warn('Invalid creatorTimestamp:', timestamp);
+    } catch (err) {
+      console.warn('Invalid creatorTimestamp:', timestamp, err);
     }
 
     return { formattedUserTime: userTime, formattedCreatorTime: creatorTime };

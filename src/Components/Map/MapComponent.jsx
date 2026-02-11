@@ -12,7 +12,16 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import emotions from '../../lib/emotions.json';
 import { supabase } from '../../lib/supabase';
 const defaultCenter = [38.9072, -77.0369];
-const defaultZoom = 8;
+// Start zoomed out so the initial view shows more area.
+const defaultZoom = 3.5;
+
+// Simplest possible deployment-safe debug flag:
+// - Set `VITE_DEBUG_PANEL_ENABLED=true` in `.env.local` (dev) to see it.
+// - Set it to `false` (or omit it) in production to hide it completely.
+const DEBUG_PANEL_ENABLED = String(import.meta.env.VITE_DEBUG_PANEL_ENABLED ?? '')
+  .replace(/['"]/g, '')
+  .trim()
+  .toLowerCase() === 'true';
 
 if (!localStorage.getItem("userID")) {
   localStorage.setItem("userID", crypto.randomUUID());
@@ -72,11 +81,30 @@ const ZoomTracker = ({ onZoomChange }) => {
   return null;
 };
 
+const MapControls = ({ onLocateError }) => {
+  return (
+    <div className="map-controls">
+      <LocateButton
+        onLocationFound={(error) => {
+          if (error) onLocateError?.(error);
+        }}
+      />
+      <button
+        className="map-control-button map-help-button"
+        type="button"
+        onClick={() => window.open('/about.html', '_blank')}
+        aria-label="Help - Learn more about this app"
+      >
+        <HelpOutlineIcon sx={{ fontSize: 22 }} />
+      </button>
+    </div>
+  );
+};
+
 
 
 const MapComponent = () => {
   const mapRef = useRef();
-  const sidebarRef = useRef(null);
   const [markers, setMarkers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showLoadingScreen, setShowLoadingScreen] = useState(true);
@@ -93,6 +121,7 @@ const MapComponent = () => {
   const [toastMessage, setToastMessage] = useState('');
   const [sameEmotionCount, setSameEmotionCount] = useState(null);
   const toastTimerRef = useRef(null);
+  const [showDebugPanel, setShowDebugPanel] = useState(DEBUG_PANEL_ENABLED);
 
   const showToast = (message) => {
     if (!message) return;
@@ -251,13 +280,6 @@ const MapComponent = () => {
     if (!tempPosition || !selectedEmotion) return;
 
     const nowIso = new Date().toISOString();
-    const newCandle = {
-      position: tempPosition,
-      emotion: selectedEmotion,
-      timestamp: nowIso,
-      user_timestamp: nowIso,
-      user_id: currentUserID,
-    };
 
     try {
       // IMPORTANT: This assumes you've created the RPC `create_marker_rate_limited`
@@ -412,6 +434,108 @@ const MapComponent = () => {
     }
   };
 
+  const handleClearMyMarkers = async () => {
+    if (!currentUserID) {
+      setLastAction('Missing user id');
+      showToast('Missing user id');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('markers')
+        .delete()
+        .eq('user_id', currentUserID);
+
+      if (error) throw error;
+
+      setMarkers((prev) => prev.filter((m) => m?.user_id !== currentUserID));
+      setUserCandles([]);
+      setLastAction('Cleared your markers');
+    } catch (error) {
+      console.error('Error clearing user markers:', error);
+      const msg = error?.message || 'Error clearing markers';
+      setLastAction(msg);
+      showToast(msg);
+    }
+  };
+
+  const handleAddRandomMarker = async () => {
+    if (!currentUserID) {
+      setLastAction('Missing user id');
+      showToast('Missing user id');
+      return;
+    }
+
+    try {
+      const randomOffset = (scale = 20) => (Math.random() - 0.5) * scale;
+      const nowIso = new Date().toISOString();
+      const sampleMarker = {
+        position: [38.9072 + randomOffset(), -77.0369 + randomOffset()],
+        emotion: getRandomLeafEmotion(),
+        timestamp: nowIso,
+        user_timestamp: nowIso,
+        user_id: currentUserID,
+      };
+
+      const { data, error } = await supabase.rpc('create_marker_rate_limited', {
+        _emotion: sampleMarker.emotion,
+        _position: sampleMarker.position,
+        _timestamp: sampleMarker.timestamp,
+        _user_id: sampleMarker.user_id,
+        _user_timestamp: sampleMarker.user_timestamp,
+      });
+
+      if (error) {
+        console.error('Error adding random marker:', error);
+        const msg = error?.message || 'Error adding random marker';
+        setLastAction(msg);
+        showToast(msg);
+
+        const isRateLimit =
+          msg.toLowerCase().includes('rate limit') ||
+          error?.code === 'P0001' ||
+          error?.details?.includes('P0001');
+
+        if (isRateLimit && currentUserID) {
+          supabase
+            .rpc('log_marker_rejection', {
+              _user_id: currentUserID,
+              _reason: msg,
+              _payload: {
+                emotion: sampleMarker.emotion,
+                position: sampleMarker.position,
+                timestamp: sampleMarker.timestamp,
+              },
+            })
+            .then(({ error: logError }) => {
+              if (logError) console.error('Failed to log rejection - RPC error:', logError);
+            })
+            .catch((logError) => {
+              console.error('Exception while logging rejection:', logError);
+            });
+        }
+        return;
+      }
+
+      if (data) {
+        const newMarker = {
+          ...data,
+          userTimestamp: new Date(data.user_timestamp),
+          isUserCandle: true,
+        };
+        setMarkers((prev) => [...prev, newMarker]);
+        setUserCandles((prev) => [...prev, data.id]);
+        setLastAction('Random sample marker added');
+      }
+    } catch (error) {
+      console.error('Error in random marker button:', error);
+      const msg = error?.message || 'Error adding random marker';
+      setLastAction(msg);
+      showToast(msg);
+    }
+  };
+
   // Leaflet uses Web Mercator projection with valid bounds:
   // Latitude: -85.0511287798 to 85.0511287798 (Mercator limit)
   // Longitude: -180 to 180
@@ -425,22 +549,34 @@ const MapComponent = () => {
       <LoadingScreen isLoading={isLoading} showLoadingScreen={showLoadingScreen} />
       {toastMessage ? <div className="toast top-center">{toastMessage}</div> : null}
       
-      <DebugPanel
-        currentUserID={currentUserID}
-        markers={markers}
-        lastAction={lastAction}
-        isPopupOpen={isPopupOpen}
-        currentStep={currentStep}
-        selectedEmotion={selectedEmotion}
-        tempPosition={tempPosition}
-        zoomLevel={zoomLevel}
-        setMarkers={setMarkers}
-        setUserCandles={setUserCandles}
-        setLastAction={setLastAction}
-        getRandomLeafEmotion={getRandomLeafEmotion}
-      />
+      {DEBUG_PANEL_ENABLED ? (
+        showDebugPanel ? (
+          <DebugPanel
+            currentUserID={currentUserID}
+            markerCount={markers.length}
+            lastAction={lastAction}
+            isPopupOpen={isPopupOpen}
+            currentStep={currentStep}
+            selectedEmotion={selectedEmotion}
+            tempPosition={tempPosition}
+            zoomLevel={zoomLevel}
+            onClearMyMarkers={handleClearMyMarkers}
+            onAddRandomMarker={handleAddRandomMarker}
+            onHide={() => setShowDebugPanel(false)}
+          />
+        ) : (
+          <button
+            className="debug-panel-toggle"
+            type="button"
+            onClick={() => setShowDebugPanel(true)}
+            aria-label="Show debug panel"
+          >
+            Debug
+          </button>
+        )
+      ) : null}
 
-      <Sidebar ref={sidebarRef} markers={markers}/>
+      <Sidebar markers={markers}/>
       
       <MapContainer
         ref={mapRef}
@@ -460,12 +596,7 @@ const MapComponent = () => {
 
         {/* Add zoom tracking */}
         <ZoomTracker onZoomChange={setZoomLevel} />
-        {/* Add locate button */}
-        <LocateButton onLocationFound={(error) => {
-          if (error) {
-            showToast(error);
-          }
-        }} />
+        <MapControls onLocateError={showToast} />
 
         {/* Add the MapClickHandler component */}
         <MapClickHandler 
@@ -521,31 +652,8 @@ const MapComponent = () => {
         currentStep={currentStep}
         tempPosition={tempPosition}
         sameEmotionCount={sameEmotionCount}
-        onOpenSidebar={() => sidebarRef.current?.open()}
       />
 
-      {/* Help Icon Button - positioned below Leaflet zoom controls */}
-      <button
-        onClick={() => window.open('/about.html', '_blank')}
-        style={{
-          position: 'fixed',
-          bottom: '30px', // Below zoom controls (10px top + 60px zoom height + 10px gap)
-          left: '10px', // Align with zoom controls
-          zIndex: 1100,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#fff',
-          background: 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-          padding: 0,
-          transition: 'all 0.2s ease',
-        }}
-        aria-label="Help - Learn more about this app"
-      >
-        <HelpOutlineIcon sx={{ fontSize: 35 }} />
-      </button>
     </div>
   );
 };

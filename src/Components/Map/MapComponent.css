@@ -109,3 +109,16 @@
   z-index: 1000;
   pointer-events: auto;
 }
+
+/* Map controls dock (below Leaflet zoom buttons) */
+.map-controls {
+  position: absolute;
+  top: 92px; /* ~ below leaflet zoom control (2 buttons) */
+  left: 10px;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+  pointer-events: auto;
+}

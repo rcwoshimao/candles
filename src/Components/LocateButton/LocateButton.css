@@ -1,0 +1,38 @@
+.map-control-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.88);
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(10px);
+  transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.map-control-button:hover {
+  background: rgba(0, 0, 0, 0.96);
+  border-color: rgba(255, 255, 255, 0.26);
+  transform: translateY(-1px);
+}
+
+.map-control-button:active {
+  transform: translateY(0);
+}
+
+.map-control-button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+  transform: none;
+}
+

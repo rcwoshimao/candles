@@ -49,18 +49,9 @@ const MIN_WIDTH = 500;
 // const MAX_WIDTH = 600;
 const MAX_WIDTH = 1000;
 
-const SidebarComponent = ({ markers }, ref) => {
+export const Sidebar = ({ markers }) => {
   const [isOpen, toggleOpen] = useCycle(false, true);
   const [isFullyOpen, setIsFullyOpen] = useState(false);
-  
-  // Expose open method via ref
-  React.useImperativeHandle(ref, () => ({
-    open: () => {
-      if (!isOpen) {
-        toggleOpen();
-      }
-    }
-  }));
   const containerRef = useRef(null);
   const { height } = useDimensions(containerRef);
   
@@ -185,5 +176,4 @@ const SidebarComponent = ({ markers }, ref) => {
   );
 };
 
-export const Sidebar = React.forwardRef(SidebarComponent);
 export default Sidebar;

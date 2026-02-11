@@ -27,7 +27,7 @@ const ChartContainer = ({ markers: fallbackMarkers }) => {
         const currentUserID = getCurrentUserID();
         const BATCH_SIZE = 1000;
         let allChartMarkers = [];
-        let batch = 0;
+        let batch = 3;
         let hasMore = true;
         
         console.log('Fetching all markers for charts (no limit)...');

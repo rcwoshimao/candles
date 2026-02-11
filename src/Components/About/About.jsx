@@ -17,15 +17,6 @@ const About = ({ onClose }) => {
   return (
     <div className="about-page">
       <div className="about-container">
-        {!onClose && (
-          <button 
-            className="about-close-button"
-            onClick={handleClose}
-            aria-label="Close"
-          >
-            ×
-          </button>
-        )}
         <div className="about-content">
           <ReactMarkdown>{appDescription}</ReactMarkdown>
         </div>

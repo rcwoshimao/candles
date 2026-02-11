@@ -10,8 +10,8 @@
 
 .about-container {
   position: relative;
-  max-width: 800px;
-  width: 90%;
+  max-width: 900px;
+  width: 100%;
   color: #fff;
   padding: 40px;
   overflow-y: auto;
@@ -98,29 +98,6 @@
   margin-bottom: 15px;
   color: rgba(255, 255, 255, 0.7);
   font-style: italic;
-}
-
-.about-close-button {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: transparent;
-  border: none;
-  color: #fff;
-  font-size: 32px;
-  cursor: pointer;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  z-index: 10;
 }
 
 .about-close-button:hover {

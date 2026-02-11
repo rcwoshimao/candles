@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { PieChart, pieArcClasses, pieArcLabelClasses } from '@mui/x-charts/PieChart';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import emotions from '../../lib/emotions.json';
 import HoldToConfirmButton from './HoldToConfirmButton';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
@@ -152,29 +152,6 @@ const CreateCandlePopup = ({
     return `${selectedMain} > ${selectedMid} > ${selectedLeaf}`;
   }, [selectedMain, selectedMid, selectedLeaf]);
 
-  // Handle back navigation
-  const handleLeft = () => {
-    if (selectedLeaf) {
-      // If we're in the placement UI, go back to leaf selection
-      setSelectedLeaf(null);
-      return;
-    }
-    if (navigationLevel === 'leaf') {
-      setNavigationLevel('mid');
-      setSelectedLeaf(null);
-      return;
-    }
-    if (navigationLevel === 'mid') {
-      setNavigationLevel('parent');
-      setSelectedMid(null);
-      setSelectedLeaf(null);
-      setSelectedMain(null);
-      return;
-    }
-  };
-
-  const canGoLeft = (navigationLevel !== 'parent' || selectedLeaf) && !isConfirmed;
-
   if (!isOpen) return null;
 
 
@@ -182,12 +159,20 @@ const CreateCandlePopup = ({
 
 
   return (
-    <div 
+    <motion.div 
       className="create-candle-panel" 
       ref={panelRef}
-      style={{
+      animate={{
         height: selectedLeaf ? 'auto' : '340px',
         minHeight: selectedLeaf ? 'auto' : '340px',
+      }}
+      transition={{
+        duration: 0.4,
+        ease: [0.4, 0, 0.2, 1],
+      }}
+      style={{
+        // Ensure bottom stays fixed during height animation
+        transformOrigin: 'bottom center',
       }}
     >
       <div className="create-candle-top-bar">
@@ -236,19 +221,28 @@ const CreateCandlePopup = ({
         padding: selectedLeaf ? '20px 12px' : '0',
         overflow: 'hidden',
       }}>
-        {!selectedLeaf && isOpen && pieChartData.length > 0 && (
-          <div
-            style={{
-              position: 'absolute',
-              left: '50%',
-              top: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: '340px',
-              height: '340px',
-              zIndex: 1,
-              pointerEvents: 'auto',
-            }}
-          >
+        <AnimatePresence mode="wait">
+          {!selectedLeaf && isOpen && pieChartData.length > 0 && (
+            <motion.div
+              key="pie-chart"
+              initial={{ opacity: 1 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{
+                duration: 0.3,
+                ease: [0.4, 0, 0.2, 1],
+              }}
+              style={{
+                position: 'absolute',
+                left: '50%',
+                top: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: '340px',
+                height: '340px',
+                zIndex: 1,
+                pointerEvents: 'auto',
+              }}
+            >
             <PieChart
                       series={[
                         {
@@ -305,11 +299,21 @@ const CreateCandlePopup = ({
                       {navigationLevel === 'parent' && 'How are you feeling?'}
                       {navigationLevel === 'mid' && selectedMain && `Describe it in detail.`}
                       {navigationLevel === 'leaf' && selectedMid && `Describe it in detail.`}
-            </div>
-          </div>
-        )}
-        {selectedLeaf && !isConfirmed && (
-          <div style={{
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <AnimatePresence>
+                {selectedLeaf && !isConfirmed && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{
+              duration: 0.3,
+              ease: [0.4, 0, 0.2, 1],
+              delay: 0.1,
+            }}
+            style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -326,7 +330,7 @@ const CreateCandlePopup = ({
               fontSize: '14px',
               lineHeight: '1.5',
             }}>
-              Choose a spot on the map. Long click fire to place candle.
+              Choose a spot on the map. Press and hold to light a candle.
             </div>
             <HoldToConfirmButton
               onConfirm={onConfirmPlacement}
@@ -334,8 +338,9 @@ const CreateCandlePopup = ({
             >
               <LocalFireDepartmentIcon sx={{ fontSize: 50 }} />
             </HoldToConfirmButton>
-          </div>
-        )}
+          </motion.div>
+                )}
+              </AnimatePresence>
         {selectedLeaf && isConfirmed && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -373,9 +378,6 @@ const CreateCandlePopup = ({
                   padding: '12px',
                   background: 'rgba(255, 255, 255, 0.1)',
                   borderRadius: '8px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
                 }}
               >
                 <div>
@@ -409,7 +411,7 @@ const CreateCandlePopup = ({
           </motion.div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

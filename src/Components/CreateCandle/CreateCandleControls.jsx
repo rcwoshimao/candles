@@ -14,7 +14,6 @@ const CreateCandleControls = ({
   currentStep,
   tempPosition,
   sameEmotionCount,
-  onOpenSidebar,
 }) => {
   return (
     <div
@@ -38,7 +37,6 @@ const CreateCandleControls = ({
           currentStep={currentStep}
           tempPosition={tempPosition}
           sameEmotionCount={sameEmotionCount}
-          onOpenSidebar={onOpenSidebar}
         />
         <CreateCandleButton onClick={onCreateCandle} />
       </div>
