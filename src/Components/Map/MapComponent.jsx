@@ -23,15 +23,6 @@ const DEBUG_PANEL_ENABLED = String(import.meta.env.VITE_DEBUG_PANEL_ENABLED ?? '
   .trim()
   .toLowerCase() === 'true';
 
-if (!localStorage.getItem("userID")) {
-  localStorage.setItem("userID", crypto.randomUUID());
-}
-
-const currentUserID = localStorage.getItem("userID");
-console.log("Current User ID:", currentUserID);
-
-const USER_CANDLES_KEY = 'userCandles';
-
 const ALL_EMOTION_LEAVES = Object.values(emotions).flatMap((midLevels) =>
   Object.values(midLevels).flat()
 );
@@ -109,16 +100,14 @@ const MapControls = ({ onLocateError }) => {
 
 const MapComponent = () => {
   const mapRef = useRef();
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
   const [markers, setMarkers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showLoadingScreen, setShowLoadingScreen] = useState(true);
   const [tempPosition, setTempPosition] = useState(null);
   const [lastAction, setLastAction] = useState('');
   const [selectedEmotion, setSelectedEmotion] = useState(null);
-  const [userCandles, setUserCandles] = useState(() => {
-    const saved = localStorage.getItem(USER_CANDLES_KEY);
-    return saved ? JSON.parse(saved) : [];
-  });
   const [zoomLevel, setZoomLevel] = useState(defaultZoom);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -137,10 +126,54 @@ const MapComponent = () => {
     }, 3200);
   };
 
-  // Save user's candles to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem(USER_CANDLES_KEY, JSON.stringify(userCandles));
-  }, [userCandles]);
+    let mounted = true;
+
+    const setUidFromSession = (session) => {
+      const uid = session?.user?.id ?? null;
+      if (!mounted) return;
+      setCurrentUserId(uid);
+    };
+
+    const ensureAnonymousSession = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) console.warn('getSession error:', error);
+
+        if (data?.session) {
+          setUidFromSession(data.session);
+          if (mounted) setAuthReady(true);
+          return;
+        }
+
+        const { data: signInData, error: signInError } = await supabase.auth.signInAnonymously();
+        if (signInError) {
+          console.error('Anonymous sign-in failed:', signInError);
+          showToast('Auth error. Please refresh.');
+          if (mounted) setAuthReady(true);
+          return;
+        }
+
+        setUidFromSession(signInData?.session ?? null);
+        if (mounted) setAuthReady(true);
+      } catch (err) {
+        console.error('Anonymous auth bootstrap exception:', err);
+        showToast('Auth error. Please refresh.');
+        if (mounted) setAuthReady(true);
+      }
+    };
+
+    ensureAnonymousSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUidFromSession(session);
+    });
+
+    return () => {
+      mounted = false;
+      authListener?.subscription?.unsubscribe?.();
+    };
+  }, []);
 
   // Fetch markers from Supabase on component mount
   useEffect(() => {
@@ -202,7 +235,6 @@ const MapComponent = () => {
           const markersWithUserInfo = allMarkers.map(marker => ({
             ...marker,
             userTimestamp: new Date(marker.user_timestamp),
-            isUserCandle: marker.user_id === currentUserID
           }));
           setMarkers(markersWithUserInfo);
           setLastAction(`Loaded ${markersWithUserInfo.length} markers`);
@@ -282,6 +314,10 @@ const MapComponent = () => {
   const handleConfirmPlacement = async () => {
     console.log('Confirm placement clicked'); // Debug log
     if (!tempPosition || !selectedEmotion) return;
+    if (!authReady || !currentUserId) {
+      showToast('Signing you in… try again in a moment.');
+      return;
+    }
 
     const nowIso = new Date().toISOString();
 
@@ -293,7 +329,6 @@ const MapComponent = () => {
       _emotion: selectedEmotion,
       _position: tempPosition,
       _timestamp: nowIso,
-      _user_id: currentUserID,
       _user_timestamp: nowIso,
     });
 
@@ -303,10 +338,8 @@ const MapComponent = () => {
         const newMarker = {
           ...data,
           userTimestamp: new Date(data.user_timestamp),
-          isUserCandle: true
         };
         setMarkers(prev => [...prev, newMarker]);
-        setUserCandles(prev => [...prev, data.id]);
         setLastAction('Candle placed successfully');
 
         // Query for candles with same emotion in the last hour
@@ -360,7 +393,7 @@ const MapComponent = () => {
       
       if (isRateLimit) {
         console.log('Logging rejection to database...', { 
-          user_id: currentUserID, 
+          user_id: currentUserId, 
           reason: msg,
           payload: {
             emotion: selectedEmotion,
@@ -369,13 +402,13 @@ const MapComponent = () => {
           }
         });
         
-        if (!currentUserID) {
-          console.error('Cannot log rejection: currentUserID is null/undefined');
+        if (!currentUserId) {
+          console.error('Cannot log rejection: currentUserId is null/undefined');
           return;
         }
         
         supabase.rpc('log_marker_rejection', {
-          _user_id: currentUserID,
+          _user_id: currentUserId,
           _reason: msg,
           _payload: {
             emotion: selectedEmotion,
@@ -416,7 +449,12 @@ const MapComponent = () => {
     // Find the marker to check ownership
     const markerToDelete = markers.find(marker => marker.id === idToDelete);
     
-    if (!markerToDelete || markerToDelete.user_id !== currentUserID) {
+    if (!authReady || !currentUserId) {
+      showToast('Signing you in… try again in a moment.');
+      return;
+    }
+
+    if (!markerToDelete || markerToDelete.user_id !== currentUserId) {
       setLastAction('You can only delete your own candles');
       return;
     }
@@ -426,7 +464,7 @@ const MapComponent = () => {
         .from('markers')
         .delete()
         .eq('id', idToDelete)
-        .eq('user_id', currentUserID); // Extra safety check on the database level
+        .eq('user_id', currentUserId); // Extra safety check on the database level
 
       if (error) throw error;
 
@@ -439,9 +477,9 @@ const MapComponent = () => {
   };
 
   const handleClearMyMarkers = async () => {
-    if (!currentUserID) {
-      setLastAction('Missing user id');
-      showToast('Missing user id');
+    if (!authReady || !currentUserId) {
+      setLastAction('Signing you in…');
+      showToast('Signing you in… try again in a moment.');
       return;
     }
 
@@ -449,12 +487,11 @@ const MapComponent = () => {
       const { error } = await supabase
         .from('markers')
         .delete()
-        .eq('user_id', currentUserID);
+        .eq('user_id', currentUserId);
 
       if (error) throw error;
 
-      setMarkers((prev) => prev.filter((m) => m?.user_id !== currentUserID));
-      setUserCandles([]);
+      setMarkers((prev) => prev.filter((m) => m?.user_id !== currentUserId));
       setLastAction('Cleared your markers');
     } catch (error) {
       console.error('Error clearing user markers:', error);
@@ -465,9 +502,9 @@ const MapComponent = () => {
   };
 
   const handleAddRandomMarker = async () => {
-    if (!currentUserID) {
-      setLastAction('Missing user id');
-      showToast('Missing user id');
+    if (!authReady || !currentUserId) {
+      setLastAction('Signing you in…');
+      showToast('Signing you in… try again in a moment.');
       return;
     }
 
@@ -479,14 +516,13 @@ const MapComponent = () => {
         emotion: getRandomLeafEmotion(),
         timestamp: nowIso,
         user_timestamp: nowIso,
-        user_id: currentUserID,
+        user_id: currentUserId,
       };
 
       const { data, error } = await supabase.rpc('create_marker_rate_limited', {
         _emotion: sampleMarker.emotion,
         _position: sampleMarker.position,
         _timestamp: sampleMarker.timestamp,
-        _user_id: sampleMarker.user_id,
         _user_timestamp: sampleMarker.user_timestamp,
       });
 
@@ -501,10 +537,10 @@ const MapComponent = () => {
           error?.code === 'P0001' ||
           error?.details?.includes('P0001');
 
-        if (isRateLimit && currentUserID) {
+        if (isRateLimit && currentUserId) {
           supabase
             .rpc('log_marker_rejection', {
-              _user_id: currentUserID,
+              _user_id: currentUserId,
               _reason: msg,
               _payload: {
                 emotion: sampleMarker.emotion,
@@ -526,10 +562,8 @@ const MapComponent = () => {
         const newMarker = {
           ...data,
           userTimestamp: new Date(data.user_timestamp),
-          isUserCandle: true,
         };
         setMarkers((prev) => [...prev, newMarker]);
-        setUserCandles((prev) => [...prev, data.id]);
         setLastAction('Random sample marker added');
       }
     } catch (error) {
@@ -556,7 +590,7 @@ const MapComponent = () => {
       {DEBUG_PANEL_ENABLED ? (
         showDebugPanel ? (
           <DebugPanel
-            currentUserID={currentUserID}
+            currentUserID={currentUserId}
             markerCount={markers.length}
             lastAction={lastAction}
             isPopupOpen={isPopupOpen}
@@ -619,7 +653,7 @@ const MapComponent = () => {
               timestamp={marker.timestamp}
               userTimestamp={marker.userTimestamp}
               handleDelete={handleDelete}
-              isUserCandle={marker.isUserCandle}
+              isUserCandle={Boolean(currentUserId && marker.user_id === currentUserId)}
               zoomLevel={zoomLevel}
             />
           );

@@ -8,14 +8,6 @@ const EmotionMuiDonutChart = React.lazy(() => import('../Charts/EmotionMuiDonutC
 const EmotionTimeOfDayStackedChart = React.lazy(() => import('../Charts/EmotionTimeOfDayStackedChart'));
 const EmotionWeekdayHeatmap = React.lazy(() => import('../Charts/EmotionWeekdayHeatmap'));
 
-// Get current user ID for marking user's candles
-const getCurrentUserID = () => {
-  if (!localStorage.getItem("userID")) {
-    localStorage.setItem("userID", crypto.randomUUID());
-  }
-  return localStorage.getItem("userID");
-};
-
 const ChartContainer = ({ markers: fallbackMarkers }) => {
   const [chartMarkers, setChartMarkers] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -24,7 +16,8 @@ const ChartContainer = ({ markers: fallbackMarkers }) => {
   useEffect(() => {
     const fetchAllMarkersForCharts = async () => {
       try {
-        const currentUserID = getCurrentUserID();
+        const { data: sessionData } = await supabase.auth.getSession();
+        const currentUserId = sessionData?.session?.user?.id ?? null;
         const BATCH_SIZE = 1000;
         let allChartMarkers = [];
         let batch = 3;
@@ -66,7 +59,7 @@ const ChartContainer = ({ markers: fallbackMarkers }) => {
           const chartMarkersWithUserInfo = allChartMarkers.map(marker => ({
             ...marker,
             userTimestamp: new Date(marker.user_timestamp),
-            isUserCandle: marker.user_id === currentUserID
+            isUserCandle: Boolean(currentUserId && marker.user_id === currentUserId)
           }));
           setChartMarkers(chartMarkersWithUserInfo);
           console.log(`Total chart markers loaded: ${chartMarkersWithUserInfo.length}`);
