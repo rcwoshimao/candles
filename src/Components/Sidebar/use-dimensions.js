@@ -11,7 +11,7 @@ export const useDimensions = ref => {
     if (!ref?.current) return;
     dimensions.current.width = ref.current.offsetWidth;
     dimensions.current.height = ref.current.offsetHeight;
-  }, [ref]);
+  }, []);
 
   return dimensions.current;
 };

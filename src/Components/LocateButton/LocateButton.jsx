@@ -2,10 +2,9 @@ import React from 'react';
 import { useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import LocationPinIcon from '@mui/icons-material/LocationPin';
-import './LocateButton.css';
 
 // Locate button component (uses browser geolocation)
-const LocateButton = ({ onLocationFound }) => {
+const LocateButton = ({ onLocationFound, className = '', tooltip = 'Locate me' }) => {
     const map = useMap();
     const [isLocating, setIsLocating] = React.useState(false);
   
@@ -42,8 +41,10 @@ const LocateButton = ({ onLocationFound }) => {
       <button
         onClick={handleLocate}
         disabled={isLocating}
-        className="map-control-button locate-button"
+        className={`map-control-button locate-button ${className}`.trim()}
         aria-label="Locate me"
+        title={tooltip}
+        data-tooltip={tooltip}
       >
         <LocationPinIcon />
       </button>

@@ -85,15 +85,19 @@ const MapControls = ({ onLocateError }) => {
   return (
     <div className="map-controls">
       <LocateButton
+        className="map-controls__button"
+        tooltip="Locate me"
         onLocationFound={(error) => {
           if (error) onLocateError?.(error);
         }}
       />
       <button
-        className="map-control-button map-help-button"
+        className="map-control-button map-controls__button map-help-button"
         type="button"
         onClick={() => window.open('/about.html', '_blank')}
         aria-label="Help - Learn more about this app"
+        title="About this site"
+        data-tooltip="About this site"
       >
         <HelpOutlineIcon sx={{ fontSize: 22 }} />
       </button>
