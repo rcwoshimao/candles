@@ -11,6 +11,7 @@ import LoadingScreen from '../LoadingScreen/LoadingScreen';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import emotions from '../../lib/emotions.json';
 import { supabase } from '../../lib/supabase';
+import { Turnstile } from '@marsidev/react-turnstile';
 const defaultCenter = [38.9072, -77.0369];
 // Start zoomed out so the initial view shows more area.
 const defaultZoom = 3.5;
@@ -22,6 +23,10 @@ const DEBUG_PANEL_ENABLED = String(import.meta.env.VITE_DEBUG_PANEL_ENABLED ?? '
   .replace(/['"]/g, '')
   .trim()
   .toLowerCase() === 'true';
+
+const TURNSTILE_SITE_KEY = String(import.meta.env.VITE_TURNSTILE_SITE_KEY ?? '')
+  .replace(/['"]/g, '')
+  .trim();
 
 const ALL_EMOTION_LEAVES = Object.values(emotions).flatMap((midLevels) =>
   Object.values(midLevels).flat()
@@ -102,6 +107,9 @@ const MapComponent = () => {
   const mapRef = useRef();
   const [currentUserId, setCurrentUserId] = useState(null);
   const [authReady, setAuthReady] = useState(false);
+  const [needsCaptcha, setNeedsCaptcha] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [captchaError, setCaptchaError] = useState('');
   const [markers, setMarkers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showLoadingScreen, setShowLoadingScreen] = useState(true);
@@ -146,16 +154,18 @@ const MapComponent = () => {
           return;
         }
 
-        const { data: signInData, error: signInError } = await supabase.auth.signInAnonymously();
-        if (signInError) {
-          console.error('Anonymous sign-in failed:', signInError);
-          showToast('Auth error. Please refresh.');
+        // If Supabase CAPTCHA is enabled, we need a Turnstile token before calling signInAnonymously.
+        if (!TURNSTILE_SITE_KEY) {
+          console.error('Missing VITE_TURNSTILE_SITE_KEY');
+          showToast('Missing Turnstile site key. Check environment variables.');
           if (mounted) setAuthReady(true);
           return;
         }
 
-        setUidFromSession(signInData?.session ?? null);
-        if (mounted) setAuthReady(true);
+        if (mounted) {
+          setNeedsCaptcha(true);
+          setAuthReady(true);
+        }
       } catch (err) {
         console.error('Anonymous auth bootstrap exception:', err);
         showToast('Auth error. Please refresh.');
@@ -174,6 +184,42 @@ const MapComponent = () => {
       authListener?.subscription?.unsubscribe?.();
     };
   }, []);
+
+  // When we have a captcha token, attempt anonymous sign-in with it.
+  useEffect(() => {
+    if (!needsCaptcha) return;
+    if (!captchaToken) return;
+
+    let mounted = true;
+    const signIn = async () => {
+      setCaptchaError('');
+      try {
+        const { data: signInData, error: signInError } = await supabase.auth.signInAnonymously({
+          options: { captchaToken },
+        });
+        if (!mounted) return;
+
+        if (signInError) {
+          console.error('Anonymous sign-in failed:', signInError);
+          setCaptchaError(signInError.message || 'Captcha sign-in failed');
+          return;
+        }
+
+        setNeedsCaptcha(false);
+        setCaptchaToken('');
+        setCurrentUserId(signInData?.session?.user?.id ?? null);
+      } catch (err) {
+        if (!mounted) return;
+        console.error('Anonymous sign-in exception:', err);
+        setCaptchaError('Captcha sign-in failed');
+      }
+    };
+
+    signIn();
+    return () => {
+      mounted = false;
+    };
+  }, [needsCaptcha, captchaToken]);
 
   // Fetch markers from Supabase on component mount
   useEffect(() => {
@@ -586,6 +632,48 @@ const MapComponent = () => {
     <div className="map-component-wrapper">
       <LoadingScreen isLoading={isLoading} showLoadingScreen={showLoadingScreen} />
       {toastMessage ? <div className="toast top-center">{toastMessage}</div> : null}
+      {needsCaptcha ? (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 5000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0, 0, 0, 0.65)',
+            backdropFilter: 'blur(6px)',
+            padding: 16,
+          }}
+        >
+          <div
+            style={{
+              width: 'min(420px, 100%)',
+              background: 'rgba(0, 0, 0, 0.8)',
+              border: '1px solid rgba(255, 255, 255, 0.16)',
+              borderRadius: 12,
+              padding: 14,
+              color: 'rgba(255, 255, 255, 0.92)',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.55)',
+            }}
+          >
+            <div style={{ fontWeight: 700, marginBottom: 8 }}>Verify you’re human</div>
+            <div style={{ fontSize: 12, opacity: 0.9, marginBottom: 12 }}>
+              This helps prevent spam before placing candles.
+            </div>
+            <Turnstile
+              siteKey={TURNSTILE_SITE_KEY}
+              options={{ theme: 'dark' }}
+              onSuccess={(token) => setCaptchaToken(token)}
+              onError={() => setCaptchaError('Captcha failed. Please try again.')}
+              onExpire={() => setCaptchaError('Captcha expired. Please try again.')}
+            />
+            {captchaError ? (
+              <div style={{ marginTop: 10, fontSize: 12, color: '#ffb4b4' }}>{captchaError}</div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
       
       {DEBUG_PANEL_ENABLED ? (
         showDebugPanel ? (
