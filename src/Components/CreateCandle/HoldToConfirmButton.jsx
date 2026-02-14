@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { motion } from 'framer-motion';
 
-const HoldToConfirmButton = ({ onConfirm, disabled, children = 'Place candle' }) => {
+const HoldToConfirmButton = ({ onConfirm, disabled, activeColor, children = 'Place candle' }) => {
   const [progress, setProgress] = useState(0);
   const [isHolding, setIsHolding] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
@@ -120,6 +120,9 @@ const HoldToConfirmButton = ({ onConfirm, disabled, children = 'Place candle' })
 
   // Calculate button scale based on progress (1.0 to 0.85)
   const buttonScale = 1.0 - (progress / 100) * 0.25;
+  const activeStrokeColor = activeColor || 'white';
+  const contentColor =
+    disabled ? 'rgba(255, 255, 255, 0.4)' : (isHolding && activeColor ? activeColor : 'white');
 
   return (
     <div
@@ -158,7 +161,7 @@ const HoldToConfirmButton = ({ onConfirm, disabled, children = 'Place candle' })
           cy="60"
           r={circleRadius}
           fill="none"
-          stroke="white"
+          stroke={activeStrokeColor}
           strokeWidth="3"
           strokeDasharray={circumference}
           strokeDashoffset={circumference}
@@ -189,7 +192,7 @@ const HoldToConfirmButton = ({ onConfirm, disabled, children = 'Place candle' })
         style={{
           padding: '12px 24px',
           background: 'transparent', 
-          color: disabled ? 'rgba(255, 255, 255, 0.4)' : 'white',
+          color: contentColor,
           border: 'none',
           borderRadius: '8px',
           cursor: disabled || isConfirmed ? 'not-allowed' : 'pointer',
@@ -236,7 +239,9 @@ const HoldToConfirmButton = ({ onConfirm, disabled, children = 'Place candle' })
               justifyContent: 'center',
             }}
           >
-            {children}
+            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: contentColor }}>
+              {children}
+            </span>
           </motion.div>
         )}
       </motion.button>

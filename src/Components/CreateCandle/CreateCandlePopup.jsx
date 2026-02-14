@@ -84,6 +84,12 @@ const CreateCandlePopup = ({
     return color || '#999';
   };
 
+  const selectedEmotionColor = useMemo(() => {
+    if (!selectedMain) return '#fff';
+    return getEmotionColor(selectedMain);
+  }, [selectedMain]);
+
+
   // Prepare data for PieChart based on navigation level
   const pieChartData = useMemo(() => {
     if (navigationLevel === 'parent') {
@@ -335,6 +341,7 @@ const CreateCandlePopup = ({
             <HoldToConfirmButton
               onConfirm={onConfirmPlacement}
               disabled={!tempPosition}
+              activeColor={selectedEmotionColor}
             >
               <LocalFireDepartmentIcon sx={{ fontSize: 50 }} />
             </HoldToConfirmButton>
