@@ -657,9 +657,9 @@ const MapComponent = () => {
               boxShadow: '0 20px 60px rgba(0, 0, 0, 0.55)',
             }}
           >
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>Verify you’re human</div>
+            <div style={{ fontWeight: 700, marginBottom: 8 }}>Verifying you’re human</div>
             <div style={{ fontSize: 12, opacity: 0.9, marginBottom: 12 }}>
-              This helps prevent spam before placing candles.
+              This might take a few seconds. Thank you for your patience. 
             </div>
             <Turnstile
               siteKey={TURNSTILE_SITE_KEY}
