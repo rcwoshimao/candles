@@ -49,9 +49,14 @@ const MIN_WIDTH = 500;
 // const MAX_WIDTH = 600;
 const MAX_WIDTH = 1000;
 
-export const Sidebar = ({ markers }) => {
-  const [isOpen, toggleOpen] = useCycle(false, true);
-  const [isFullyOpen, setIsFullyOpen] = useState(false);
+export const Sidebar = ({ markers, isOpen: controlledIsOpen, onToggle }) => {
+  // Support both controlled and uncontrolled usage.
+  const [uncontrolledIsOpen, toggleOpen] = useCycle(false, true);
+  const isOpen = controlledIsOpen ?? uncontrolledIsOpen;
+  const handleToggle = onToggle ?? (() => toggleOpen());
+
+  // If the sidebar mounts already open (controlled), `onAnimationComplete` may not fire.
+  const [isFullyOpen, setIsFullyOpen] = useState(isOpen);
   const containerRef = useRef(null);
   const { height } = useDimensions(containerRef);
   
@@ -74,6 +79,11 @@ export const Sidebar = ({ markers }) => {
   const handleAnimationComplete = () => {
     setIsFullyOpen(isOpen);
   };
+
+  // When closing, immediately stop rendering heavy charts.
+  useEffect(() => {
+    if (!isOpen) setIsFullyOpen(false);
+  }, [isOpen]);
 
   const handleMouseDown = (e) => {
     setIsResizing(true);
@@ -169,7 +179,7 @@ export const Sidebar = ({ markers }) => {
         />
         {/* Always render the menu toggle button, absolutely positioned */}
         <div className="sidebar-toggle-button">
-          <MenuToggle toggle={() => toggleOpen()} />
+          <MenuToggle toggle={handleToggle} />
         </div>
       </motion.nav>
     </>

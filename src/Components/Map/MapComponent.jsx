@@ -123,6 +123,9 @@ const MapComponent = () => {
   const [sameEmotionCount, setSameEmotionCount] = useState(null);
   const toastTimerRef = useRef(null);
   const [showDebugPanel, setShowDebugPanel] = useState(DEBUG_PANEL_ENABLED);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true); 
+  const handleOpenSidebar = () => setIsSidebarOpen(true);
+  const handleToggleSidebar = () => setIsSidebarOpen((v) => !v);
 
   const showToast = (message) => {
     if (!message) return;
@@ -702,7 +705,7 @@ const MapComponent = () => {
         )
       ) : null}
 
-      <Sidebar markers={markers}/>
+      <Sidebar markers={markers} isOpen={isSidebarOpen} onToggle={handleToggleSidebar} />
       
       <MapContainer
         ref={mapRef}
@@ -767,6 +770,7 @@ const MapComponent = () => {
       </MapContainer>
 
       <CreateCandleControls
+        isOpenSidebarClicked={handleOpenSidebar}
         isPopupOpen={isPopupOpen}
         onCreateCandle={handleCreateCandle}
         onClosePopup={handleClosePopup}

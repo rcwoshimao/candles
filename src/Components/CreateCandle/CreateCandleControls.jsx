@@ -3,6 +3,7 @@ import CreateCandleButton from './CreateCandleButton';
 import CreateCandlePopup from './CreateCandlePopup';
 
 const CreateCandleControls = ({
+  isOpenSidebarClicked,
   isPopupOpen,
   onCreateCandle,
   onClosePopup,
@@ -27,6 +28,7 @@ const CreateCandleControls = ({
     >
       <div style={{ position: 'relative' }}>
         <CreateCandlePopup
+          onOpenSidebar={isOpenSidebarClicked}
           isOpen={isPopupOpen}
           onClose={onClosePopup}
           onBack={onBackFromPlacement}
