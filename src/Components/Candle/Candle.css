@@ -66,33 +66,3 @@ path.flicker-2 {
   padding: 0;
 }
 
-/* Delete button inside candle popup (avoid OS light-scheme defaults) */
-.leaflet-popup-content .delete-button {
-  appearance: none;
-  -webkit-appearance: none;
-
-  margin-top: 10px;
-  padding: 8px 10px;
-  border-radius: 10px;
-
-  background: rgba(255, 90, 82, 0.16);
-  border: 1px solid rgba(255, 90, 82, 0.35);
-  color: rgba(255, 255, 255, 0.92);
-
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.1;
-  cursor: pointer;
-  transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
-}
-
-.leaflet-popup-content .delete-button:hover {
-  background: rgba(255, 90, 82, 0.22);
-  border-color: rgba(255, 90, 82, 0.45);
-  transform: translateY(-1px);
-}
-
-.leaflet-popup-content .delete-button:active {
-  transform: translateY(0);
-}
-
