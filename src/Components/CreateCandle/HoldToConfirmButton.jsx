@@ -1,15 +1,25 @@
 import React, { useState, useRef, useEffect } from 'react';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { motion } from 'framer-motion';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
-const HoldToConfirmButton = ({ onConfirm, disabled, activeColor, children = 'Place candle' }) => {
+const DEFAULT_LOTTIE_SRC =
+  'https://lottie.host/0f314908-2953-4c7a-a0ca-ebb571310fad/plbQQYf2Ey.lottie';
+
+const HoldToConfirmButton = ({
+  onConfirm,
+  disabled,
+  activeColor,
+  children = 'Place candle',
+  lottieSrc = DEFAULT_LOTTIE_SRC,
+}) => {
   const [progress, setProgress] = useState(0);
   const [isHolding, setIsHolding] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const animationFrameRef = useRef(null);
   const startTimeRef = useRef(null);
   const progressCircleRef = useRef(null);
-  const HOLD_DURATION = 3000; // 2 seconds
+  const HOLD_DURATION = 2000; // 2 seconds
   const circleRadius = 50;
   const circumference = 2 * Math.PI * circleRadius;
 
@@ -123,6 +133,10 @@ const HoldToConfirmButton = ({ onConfirm, disabled, activeColor, children = 'Pla
   const activeStrokeColor = activeColor || 'white';
   const contentColor =
     disabled ? 'rgba(255, 255, 255, 0.4)' : (isHolding && activeColor ? activeColor : 'white');
+  const showLottieIdle = !disabled && !isHolding && !isConfirmed;
+  const showLottieConfirmed = isConfirmed; // or (isConfirmed && !disabled) if you prefer
+  const showLottie = showLottieIdle || showLottieConfirmed;
+  const lottieTintColor = showLottieConfirmed ? activeStrokeColor : 'rgba(255, 255, 255, 0.95)';
 
   return (
     <div
@@ -205,6 +219,26 @@ const HoldToConfirmButton = ({ onConfirm, disabled, activeColor, children = 'Pla
           justifyContent: 'center',
         }}
       >
+        {showLottie ? (
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 200,
+              height: 200,
+              pointerEvents: 'none',
+              opacity: showLottieConfirmed ? 1 : 0.9,
+              // We can’t reliably recolor arbitrary Lottie vectors via `color`,
+              // but we *can* tint the prompt with a glow.
+              
+            }}
+          >
+            <DotLottieReact src={lottieSrc} loop autoplay />
+          </div>
+        ) : null}
         {isConfirmed ? (
           <motion.div
             key="confirmed"
