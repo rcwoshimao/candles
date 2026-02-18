@@ -333,10 +333,11 @@ const CreateCandlePopup = ({
             <div style={{
               textAlign: 'center',
               color: 'rgba(255, 255, 255, 0.8)',
-              fontSize: '14px',
+              fontSize: '16px',
+              marginBottom: '10px', 
               lineHeight: '1.5',
             }}>
-              Choose a spot on the map. Press and hold to light a candle.
+              Choose a spot on the map. When you are ready, press and hold to light a candle.
             </div>
             <HoldToConfirmButton
               onConfirm={onConfirmPlacement}
@@ -410,7 +411,7 @@ const CreateCandlePopup = ({
                       e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)';
                     }}
                   >
-                    View detailed charts in the sidebar
+                    Curious about how other people feel? View the sidebar 
                   </div>
                 )}
               </motion.div>
