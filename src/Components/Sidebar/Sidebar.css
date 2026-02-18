@@ -22,10 +22,14 @@
   bottom: 0;
   width: 100%;
   background: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   overflow: hidden;
   /* border-left: 1px solid rgba(255, 255, 255, 0.3);*/
+}
+
+/* Apply blur only once the sidebar is fully open to avoid flicker during animation */
+.sidebar-background.blurred {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .sidebar-content {

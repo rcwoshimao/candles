@@ -104,6 +104,7 @@ const MapControls = ({ onLocateError }) => {
 
 
 const MapComponent = () => {
+  if (import.meta.env.DEV) console.count('[render] MapComponent');
   const mapRef = useRef();
   const [currentUserId, setCurrentUserId] = useState(null);
   const [authReady, setAuthReady] = useState(false);
@@ -125,7 +126,17 @@ const MapComponent = () => {
   const [showDebugPanel, setShowDebugPanel] = useState(DEBUG_PANEL_ENABLED);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true); 
   const handleOpenSidebar = () => setIsSidebarOpen(true);
-  const handleToggleSidebar = () => setIsSidebarOpen((v) => !v);
+  // const handleToggleSidebar = () => setIsSidebarOpen((v) => !v);
+  const handleToggleSidebar = () => {
+    if (import.meta.env.DEV) console.count('[sidebar] toggle click');
+    setIsSidebarOpen((v) => {
+      if (import.meta.env.DEV) console.log('[sidebar] setIsSidebarOpen from -> to', v, '->', !v);
+      return !v;
+    });
+  };
+  useEffect(() => {
+    if (import.meta.env.DEV) console.log('[sidebar] isSidebarOpen changed:', isSidebarOpen);
+  }, [isSidebarOpen]);
 
   const showToast = (message) => {
     if (!message) return;

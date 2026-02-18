@@ -50,6 +50,7 @@ const MIN_WIDTH = 500;
 const MAX_WIDTH = 1000;
 
 export const Sidebar = ({ markers, isOpen: controlledIsOpen, onToggle }) => {
+
   // Support both controlled and uncontrolled usage.
   const [uncontrolledIsOpen, toggleOpen] = useCycle(false, true);
   const isOpen = controlledIsOpen ?? uncontrolledIsOpen;
@@ -66,6 +67,17 @@ export const Sidebar = ({ markers, isOpen: controlledIsOpen, onToggle }) => {
     return savedWidth ? parseInt(savedWidth, 10) : DEFAULT_SIDEBAR_WIDTH;
   });
   
+  if (import.meta.env.DEV) {
+    console.count('[render] Sidebar');
+    console.log('[Sidebar props/state]', {
+      controlledIsOpen,
+      uncontrolledIsOpen,
+      isOpen,
+      isFullyOpen,
+      sidebarWidth,
+    });
+  }
+  
   const [isResizing, setIsResizing] = useState(false);
   const startXRef = useRef(0);
   const startWidthRef = useRef(0);
@@ -75,14 +87,31 @@ export const Sidebar = ({ markers, isOpen: controlledIsOpen, onToggle }) => {
     localStorage.setItem('sidebarWidth', sidebarWidth.toString());
   }, [sidebarWidth]);
 
-  // Handle the animation completion
+  // // Handle the animation completion
+  // const handleAnimationComplete = () => {
+  //   setIsFullyOpen(isOpen);
+  // };
   const handleAnimationComplete = () => {
+    if (import.meta.env.DEV) {
+      console.log('[Sidebar] onAnimationComplete. isOpen currently:', isOpen);
+    }
     setIsFullyOpen(isOpen);
   };
 
   // When closing, immediately stop rendering heavy charts.
+  // useEffect(() => {
+  //   if (!isOpen) setIsFullyOpen(false);
+  // }, [isOpen]);
   useEffect(() => {
-    if (!isOpen) setIsFullyOpen(false);
+    if (import.meta.env.DEV) {
+      console.log('[Sidebar] isOpen changed:', isOpen);
+    }
+    if (!isOpen) {
+      if (import.meta.env.DEV) {
+        console.log('[Sidebar] closing -> setIsFullyOpen(false)');
+      }
+      setIsFullyOpen(false);
+    }
   }, [isOpen]);
 
   const handleMouseDown = (e) => {
@@ -144,7 +173,7 @@ export const Sidebar = ({ markers, isOpen: controlledIsOpen, onToggle }) => {
         style={{ width: isOpen ? sidebarWidth : 0 }}
       >
         <motion.div
-          className="sidebar-background"
+          className={`sidebar-background${isFullyOpen ? ' blurred' : ''}`}
           variants={sidebar}
           initial={false}
           animate={isOpen ? "open" : "closed"}
