@@ -1,4 +1,4 @@
-# Emotional Map - Anonymous Community Emotion Sharing
+# Candles - Anonymous Community Emotion Sharing
 
 ## React + Vite Template Information
 This project is built using the React + Vite template, which provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
@@ -15,7 +15,7 @@ If you are developing a production application, we recommend using TypeScript wi
 ## Application Documentation
 
 ### Overview
-Emotional Map is a web application that allows users to anonymously share their emotions by placing virtual candles on a map. It creates a visual representation of community emotions across different locations, fostering a sense of shared experience while maintaining privacy.
+Candles is a web application that allows users to anonymously share their emotions by placing virtual candles on a map. It creates a visual representation of community emotions across different locations, fostering a sense of shared experience while maintaining privacy.
 
 ## Core Features
 - Interactive world map interface
@@ -73,13 +73,17 @@ src/
   - View all community candles
 
 #### Backend (Supabase)
-- Database table: `markers`
-- Stores:
+
+- **Database**: Supabase Postgres table `markers` stores candles (emotion, lat/lng position, timestamps, `user_id`).
+- **Auth (anonymous)**: Uses Supabase anonymous auth sessions (no accounts/passwords) so actions can be tied to a user without collecting personal info.
+- **Spam/bot resistance**: Uses **Cloudflare Turnstile** to obtain a captcha token before `signInAnonymously`, and uses Supabase **RPCs** (e.g. `create_marker_rate_limited`) to rate-limit candle creation.
+- **Safer writes**: Deletion is scoped to the current user (`delete ... where id = ? and user_id = currentUserId`), and rejected actions can be logged via an RPC (e.g. `log_marker_rejection`).
+- **Env vars**: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, and `VITE_TURNSTILE_SITE_KEY` are configured via environment variables (never committed).
 
 ### Technical Stack
 - Frontend: React with Vite
 - Map: Leaflet/React-Leaflet
-- Backend: Supabase
+- Backend: Supabase, Cloudfare 
 - Styling: CSS with custom animations
 - State Management: React Hooks
 - Date Handling: date-fns
