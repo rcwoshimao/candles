@@ -1,6 +1,6 @@
 # Candles - Anonymous Community Emotion Sharing
 
-# [link to latest production](candles-auk.pages.dev/)
+# [link to latest production](https://candles-auk.pages.dev/)
 
 ## React + Vite Template Information
 This project is built using the React + Vite template, which provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
