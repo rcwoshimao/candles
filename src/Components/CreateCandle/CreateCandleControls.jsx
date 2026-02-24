@@ -18,13 +18,7 @@ const CreateCandleControls = ({
 }) => {
   return (
     <div
-      style={{
-        position: 'fixed',
-        bottom: 20,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 2000,
-      }}
+      className="create-candle-button-container"
     >
       <div style={{ position: 'relative' }}>
         <CreateCandlePopup

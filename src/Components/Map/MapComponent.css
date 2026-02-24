@@ -106,10 +106,10 @@
 /* Add styles for the new create candle button container */
 .create-candle-button-container {
   position: fixed;
-  bottom: 2rem;
+  bottom: max(2rem, env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
-  z-index: 1000;
+  z-index: 2000;
   pointer-events: auto;
 }
 
@@ -124,6 +124,23 @@
   gap: 10px;
   align-items: stretch;
   pointer-events: auto;
+}
+
+@media (max-width: 768px) {
+  /* Keep Leaflet built-in controls (zoom) out of notches/safe-areas */
+  .leaflet-top {
+    top: max(10px, env(safe-area-inset-top));
+  }
+
+  .leaflet-left {
+    left: max(10px, env(safe-area-inset-left));
+  }
+
+  /* Keep our custom control dock aligned under zoom buttons + safe-area */
+  .map-controls {
+    top: calc(92px + max(0px, env(safe-area-inset-top)));
+    left: max(10px, env(safe-area-inset-left));
+  }
 }
 
 /* Centralized button styling for Map controls (Locate + Help). */
