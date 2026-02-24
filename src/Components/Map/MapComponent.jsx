@@ -106,6 +106,18 @@ const MapControls = ({ onLocateError }) => {
 const MapComponent = () => {
   if (import.meta.env.DEV) console.count('[render] MapComponent');
   const mapRef = useRef();
+  const isPhoneViewport = () => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return window.matchMedia?.('(max-width: 768px)')?.matches ?? false;
+    } catch {
+      return false;
+    }
+  };
+
+  const [isPhone, setIsPhone] = useState(() => isPhoneViewport());
+  // Slightly zoom out on phones so the world view doesn't feel "too close".
+  const initialZoomRef = useRef(isPhoneViewport() ? 2.8 : defaultZoom);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [authReady, setAuthReady] = useState(false);
   const [needsCaptcha, setNeedsCaptcha] = useState(false);
@@ -124,7 +136,8 @@ const MapComponent = () => {
   const [sameEmotionCount, setSameEmotionCount] = useState(null);
   const toastTimerRef = useRef(null);
   const [showDebugPanel, setShowDebugPanel] = useState(DEBUG_PANEL_ENABLED);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true); 
+  // Phones: start closed. Desktop: start open.
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => !isPhoneViewport());
   const handleOpenSidebar = () => setIsSidebarOpen(true);
   // const handleToggleSidebar = () => setIsSidebarOpen((v) => !v);
   const handleToggleSidebar = () => {
@@ -137,6 +150,30 @@ const MapComponent = () => {
   useEffect(() => {
     if (import.meta.env.DEV) console.log('[sidebar] isSidebarOpen changed:', isSidebarOpen);
   }, [isSidebarOpen]);
+
+  // Track viewport changes; if we enter phone layout, force-close the sidebar.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mql = window.matchMedia?.('(max-width: 768px)');
+    if (!mql) return;
+
+    const onChange = (e) => {
+      setIsPhone(Boolean(e.matches));
+      if (e.matches) setIsSidebarOpen(false);
+    };
+
+    // Initialize in case orientation changed before mount.
+    setIsPhone(Boolean(mql.matches));
+
+    if (typeof mql.addEventListener === 'function') {
+      mql.addEventListener('change', onChange);
+      return () => mql.removeEventListener('change', onChange);
+    }
+
+    // Safari fallback
+    mql.addListener?.(onChange);
+    return () => mql.removeListener?.(onChange);
+  }, []);
 
   const showToast = (message) => {
     if (!message) return;
@@ -716,12 +753,12 @@ const MapComponent = () => {
         )
       ) : null}
 
-      <Sidebar markers={markers} isOpen={isSidebarOpen} onToggle={handleToggleSidebar} />
+      <Sidebar markers={markers} isOpen={isSidebarOpen} onToggle={handleToggleSidebar} isPhone={isPhone} />
       
       <MapContainer
         ref={mapRef}
         center={defaultCenter}
-        zoom={defaultZoom}
+        zoom={initialZoomRef.current}
         minZoom={2.5}
         maxZoom={18}
         maxBounds={worldBounds}

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useRef, useState, useEffect, Suspense } from "react";
-import { motion, useCycle } from "framer-motion";
+import { AnimatePresence, motion, useCycle } from "framer-motion";
 import { useDimensions } from "./use-dimensions";
 import { MenuToggle } from "./MenuToggle";
 import './Sidebar.css';
@@ -49,12 +49,14 @@ const MIN_WIDTH = 500;
 // const MAX_WIDTH = 600;
 const MAX_WIDTH = 1000;
 
-export const Sidebar = ({ markers, isOpen: controlledIsOpen, onToggle }) => {
+export const Sidebar = ({ markers, isOpen: controlledIsOpen, onToggle, isPhone }) => {
 
   // Support both controlled and uncontrolled usage.
   const [uncontrolledIsOpen, toggleOpen] = useCycle(false, true);
   const isOpen = controlledIsOpen ?? uncontrolledIsOpen;
   const handleToggle = onToggle ?? (() => toggleOpen());
+
+  const isMobile = Boolean(isPhone);
 
   // If the sidebar mounts already open (controlled), `onAnimationComplete` may not fire.
   const [isFullyOpen, setIsFullyOpen] = useState(isOpen);
@@ -163,54 +165,111 @@ export const Sidebar = ({ markers, isOpen: controlledIsOpen, onToggle }) => {
 
   return (
     <>
-      <motion.nav
-        className={`sidebar-nav${!isOpen ? ' closed' : ''}`}
+      {/* Keep the toggle always tappable and independent of sidebar pointer-events */}
+      <motion.div
+        className="sidebar-toggle-button"
         initial={false}
         animate={isOpen ? "open" : "closed"}
-        custom={height}
-        ref={containerRef}
-        onAnimationComplete={handleAnimationComplete}
-        style={{ width: isOpen ? sidebarWidth : 0 }}
       >
-        <motion.div
-          className={`sidebar-background${isFullyOpen ? ' blurred' : ''}`}
-          variants={sidebar}
+        <MenuToggle toggle={handleToggle} />
+      </motion.div>
+
+      {isMobile ? (
+        <AnimatePresence>
+          {isOpen ? (
+            <motion.div
+              className="sidebar-mobile-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+            >
+              <motion.div
+                className="sidebar-mobile-panel"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Candle analytics"
+                initial={{ y: 18, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 18, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 420, damping: 38 }}
+              >
+                <div className="sidebar-mobile-header">
+                  <div className="sidebar-mobile-title">Candle Analytics</div>
+                  <button
+                    type="button"
+                    className="sidebar-mobile-close"
+                    onClick={handleToggle}
+                    aria-label="Close analytics"
+                  >
+                    Close
+                  </button>
+                </div>
+
+                <div className="sidebar-mobile-stats">
+                  <div className="stat-item">
+                    <span className="stat-label">Total Candles:</span>
+                    <span className="stat-value">{processedMarkers?.total || 0}</span>
+                  </div>
+                </div>
+
+                <div className="sidebar-mobile-content">
+                  {markers ? (
+                    <Suspense fallback={<div className="chart-loading">Loading charts...</div>}>
+                      <ChartContainer markers={markers} />
+                    </Suspense>
+                  ) : null}
+                </div>
+              </motion.div>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+      ) : (
+        <motion.nav
+          className={`sidebar-nav${!isOpen ? ' closed' : ''}`}
           initial={false}
           animate={isOpen ? "open" : "closed"}
           custom={height}
+          ref={containerRef}
+          onAnimationComplete={handleAnimationComplete}
+          style={{ width: isOpen ? sidebarWidth : 0 }}
         >
-          <div className="sidebar-content">
-            <div className="sidebar-header">
-              <h2>Candle Analytics</h2>
-              <div className="sidebar-stats">
-                <div className="stat-item">
-                  <span className="stat-label">Total Candles:</span>
-                  <span className="stat-value">{processedMarkers?.total || 0}</span>
+          <motion.div
+            className={`sidebar-background${isFullyOpen ? ' blurred' : ''}`}
+            variants={sidebar}
+            initial={false}
+            animate={isOpen ? "open" : "closed"}
+            custom={height}
+          >
+            <div className="sidebar-content">
+              <div className="sidebar-header">
+                <h2>Candle Analytics</h2>
+                <div className="sidebar-stats">
+                  <div className="stat-item">
+                    <span className="stat-label">Total Candles:</span>
+                    <span className="stat-value">{processedMarkers?.total || 0}</span>
+                  </div>
                 </div>
               </div>
+              
+              <div className="sidebar-charts-container">
+                {isFullyOpen && markers && (
+                  <Suspense fallback={<div className="chart-loading">Loading charts...</div>}>
+                    <ChartContainer markers={markers} />
+                  </Suspense>
+                )}
+              </div>
             </div>
-            
-            <div className="sidebar-charts-container">
-              {isFullyOpen && markers && (
-                <Suspense fallback={<div className="chart-loading">Loading charts...</div>}>
-                  <ChartContainer markers={markers} />
-                </Suspense>
-              )}
-            </div>
-          </div>
-        </motion.div>
-        <motion.div 
-          className="sidebar-resize-handle"
-          variants={resizeHandleVariants}
-          initial="closed"
-          animate={isOpen ? "open" : "closed"}
-          onMouseDown={handleMouseDown}
-        />
-        {/* Always render the menu toggle button, absolutely positioned */}
-        <div className="sidebar-toggle-button">
-          <MenuToggle toggle={handleToggle} />
-        </div>
-      </motion.nav>
+          </motion.div>
+          <motion.div 
+            className="sidebar-resize-handle"
+            variants={resizeHandleVariants}
+            initial="closed"
+            animate={isOpen ? "open" : "closed"}
+            onMouseDown={handleMouseDown}
+          />
+        </motion.nav>
+      )}
     </>
   );
 };

@@ -138,11 +138,11 @@
 }
 
 /* Make the menu button always visible and clickable */
-.sidebar-nav .sidebar-toggle-button {
+.sidebar-toggle-button {
   position: fixed;
   right:25px;
   top: 25px;
-  z-index: 1100;
+  z-index: 6000;
   width: 60px;
   height: 60px;
   display: flex;
@@ -152,13 +152,20 @@
   cursor: pointer;
   border: none;
   outline: none;
-  
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
-.sidebar-nav.closed .sidebar-toggle-button {
+.sidebar-toggle-button {
   pointer-events: auto;
-  background: rgba(0,0,0,0.3);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.sidebar-toggle-button:hover {
+  background: rgba(0, 0, 0, 0.48);
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
 /* Scrollbar styling */
@@ -178,5 +185,88 @@
 
 .sidebar-charts-container::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.4);
+}
+
+/* -----------------------------
+   Mobile: full-screen modal UX
+-------------------------------- */
+@media (max-width: 768px) {
+  /* Hide desktop rail entirely on phones; we render a modal instead. */
+  .sidebar-nav {
+    display: none;
+  }
+
+  .sidebar-toggle-button {
+    top: max(16px, env(safe-area-inset-top));
+    right: max(16px, env(safe-area-inset-right));
+    width: 52px;
+    height: 52px;
+  }
+
+  .sidebar-mobile-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+      max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    display: flex;
+  }
+
+  .sidebar-mobile-panel {
+    width: 100%;
+    height: 100%;
+    border-radius: 16px;
+    background: rgba(0, 0, 0, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sidebar-mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 14px 10px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .sidebar-mobile-title {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+  }
+
+  .sidebar-mobile-close {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: rgba(255, 255, 255, 0.92);
+    padding: 8px 10px;
+    border-radius: 10px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .sidebar-mobile-stats {
+    padding: 12px 14px;
+  }
+
+  .sidebar-mobile-content {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 14px 14px 14px;
+  }
+
+  .chart-loading {
+    padding: 12px 0;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 13px;
+  }
 }
   
